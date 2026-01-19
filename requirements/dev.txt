@@ -1,0 +1,7 @@
+Purpose: Dependency hygiene
+
+base.txt → shared dependencies
+
+dev.txt → tooling only (pytest, black)
+
+prod.txt → runtime-only (gunicorn, sentry)
