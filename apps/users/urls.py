@@ -19,11 +19,10 @@ urlpatterns = [
     path('hello/', views.UserView.as_view(), name ='hello'),
 
     path('register/', views.UserRegistrationView.as_view(), name='register'),
-    # path('login/', views.LoginUserView.as_view(), name =''),
-    # path('token/refresh/', views.TokenRefreshUserView.as_view(), name =''),
+    path('login/', views.LoginUserView.as_view(), name =''),
     # path('me/', views.MeUserView.as_view(), name =''),
-    # path('logout/', views.LogOutUserView.as_view(), name =''),
-    
+    # path('logout/', views.LogoutView.as_view(), name =''),
+    # path('token/refresh/', views.TokenRefreshUserView.as_view(), name =''),
 ]
 
 # POST /api/auth/register/  new user front page, username password, conform password
