@@ -1,0 +1,19 @@
+/* css/styles.css */
+
+/* center card nicely on very short viewports */
+html, body {
+    height: 100%;
+  }
+  
+  .card {
+    border-radius: 12px;
+  }
+  
+  /* small responsive tweaks */
+  @media (max-width: 420px) {
+    .card-body { padding: 1.25rem; }
+  }
+  
+  /* alert styling space */
+  #alertPlaceholder { margin-top: -0.5rem; margin-bottom: 0.75rem; }
+  
