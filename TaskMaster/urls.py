@@ -27,3 +27,7 @@ urlpatterns = [
     # apps
     path("api/auth/", include("apps.users.urls")),
 ]
+
+
+# http://localhost:8080
+# http://127.0.0.1:8000/accounts/google/login/callback/

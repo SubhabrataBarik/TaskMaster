@@ -152,10 +152,6 @@ SIMPLE_JWT = {
 
 SOCIALACCOUNT_PROVIDERS = {
    "google": {
-       "APP": {
-           "client_id": "<your_google_client_id>",
-           "secret": "<your_google_secret>",
-       },
        "SCOPE": ["profile", "email"],
        "AUTH_PARAMS": {"access_type": "online"},
        "VERIFIED_EMAIL": True,
