@@ -1,30 +1,11 @@
-# urls.py
-
-# import path
-# import auth views
-
-# urlpatterns:
-# /api/auth/register/
-# /api/auth/login/
-# /api/auth/token/refresh/
-
-# include users.urls
-
-# path("api/auth/", include("apps.users.urls"))
-
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
 
 urlpatterns = [
-    path('hello/', views.UserView.as_view(), name ='hello'),
-
     path('register/', views.UserRegistrationView.as_view(), name='register'),
-    path('login/', views.LoginUserView.as_view(), name =''),
-    # path('me/', views.MeUserView.as_view(), name =''),
-    # path('logout/', views.LogoutView.as_view(), name =''),
-    # path('token/refresh/', views.TokenRefreshUserView.as_view(), name =''),
+    path('login/', views.UserLoginView.as_view(), name ='login'),
+    path('me/', views.UserMeView.as_view(), name ='me'),
+    path('logout/', views.UserLogoutView.as_view(), name ='logout'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
-
-# POST /api/auth/register/  new user front page, username password, conform password
-# POST /api/auth/login/     the login page in frontend
-# POST /api/auth/token/refresh/ 

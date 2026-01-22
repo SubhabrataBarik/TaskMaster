@@ -1,24 +1,3 @@
-# serializers.py
-
-# import serializers from DRF
-
-# RegisterSerializer
-
-# input fields:
-# - email
-# - password
-# - password_confirm
-
-# validation:
-# - email must be unique
-# - password length >= 6 or 8
-# - password == password_confirm
-
-# create():
-# - remove password_confirm
-# - create user using UserManager
-# - return user instance
-
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
@@ -28,7 +7,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'password2']
+        fields = ['email', 'username', 'password', 'password2']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -60,7 +39,7 @@ class LoginSerializer(serializers.Serializer):
             user_obj = User.objects.get(email=email)
         except User.DoesNotExist:
             raise serializers.ValidationError("Invalid credentials")
-        user = authenticate(username=user_obj, password=password)
+        user = authenticate(username=user_obj.username, password=password)
         if not user:
             raise serializers.ValidationError("Invalid credentials")
         data["user"] = user
