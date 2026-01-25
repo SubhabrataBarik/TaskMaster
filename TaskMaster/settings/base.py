@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_simplejwt.token_blacklist',
     "django_celery_results",
+    "django_filters",
 
     'django.contrib.sites',
     'allauth',
@@ -138,6 +139,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication", #This is okay during development but be aware
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
 }
 
@@ -170,6 +173,7 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 
 TEMPLATES = [
   {
@@ -205,6 +209,9 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+# users.user
+AUTH_USER_MODEL = "users.User"
 
 # Celery defaults (can be overridden in prod)
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
