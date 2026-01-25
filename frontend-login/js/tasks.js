@@ -58,7 +58,7 @@ const taskApp = {
 
         // E. Fetch from API
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/tasks/?${query.toString()}`, {
+            const response = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/?${query.toString()}`, {
                 headers: taskApp.getHeaders()
             });
 
@@ -177,7 +177,7 @@ const taskApp = {
     saveTask: async () => {
         const id = document.getElementById('taskId').value;
         const method = id ? 'PATCH' : 'POST'; // Use PATCH for updates
-        const url = id ? `${CONFIG.API_BASE_URL}/tasks/${id}/` : `${CONFIG.API_BASE_URL}/tasks/`;
+        const url = id ? `${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/` : `${CONFIG.TASKS_API_BASE_URL}/tasks/`;
 
         const payload = {
             title: document.getElementById('taskTitle').value,
@@ -214,7 +214,7 @@ const taskApp = {
         if (!confirm("Are you sure you want to delete this task?")) return;
         
         try {
-            await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`, {
+            await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, {
                 method: 'DELETE',
                 headers: taskApp.getHeaders()
             });
@@ -226,7 +226,7 @@ const taskApp = {
     toggleComplete: async (id, currentStatus) => {
         const newStatus = currentStatus === 'done' ? 'todo' : 'done';
         try {
-            await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`, {
+            await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, {
                 method: 'PATCH',
                 headers: taskApp.getHeaders(),
                 body: JSON.stringify({ status: newStatus })
@@ -238,7 +238,7 @@ const taskApp = {
     // --- 7. Modal Handlers ---
     editTask: async (id) => {
         try {
-            const res = await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`, { headers: taskApp.getHeaders() });
+            const res = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, { headers: taskApp.getHeaders() });
             if (!res.ok) throw new Error("Task not found");
             
             const task = await res.json();

@@ -77,27 +77,14 @@ class TaskCreateUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def create(self, validated_data):
-        # request = self.context["request"]
         # request = self.context.get("request")
         tags_data = validated_data.pop("tags", [])
         subtasks_data = validated_data.pop("subtasks", [])
 
         with transaction.atomic():
-            # task = Task.objects.create(
-            #     user=request.user,
-            #     **validated_data
-            # )
             task = Task.objects.create(**validated_data)
 
             # tags
-            # for tag_name in tags_data:
-            #     tag_name = tag_name.strip().lower()
-            #     tag, _ = Tag.objects.get_or_create(
-            #         user=request.user,
-            #         name=tag_name
-            #     )
-            #     task.tags.add(tag)
-
             for tag_name in tags_data:
                 tag_name = tag_name.strip().lower()
                 tag, _ = Tag.objects.get_or_create(
