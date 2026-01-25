@@ -73,3 +73,77 @@ class UserLogoutView(APIView):
                             status=status.HTTP_205_RESET_CONTENT)
         except TokenError:
             return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+import requests
+from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from allauth.socialaccount.models import SocialAccount
+User = get_user_model()
+class GoogleLoginView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        # 1. Get the Google Access Token from the request
+        google_access_token = request.data.get('access_token')
+        
+        if not google_access_token:
+            return Response({'detail': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Verify the token with Google directly
+        google_response = requests.get(
+            'https://www.googleapis.com/oauth2/v3/userinfo',
+            params={'access_token': google_access_token}
+        )
+
+        if not google_response.ok:
+            return Response({'detail': 'Invalid Google token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_info = google_response.json()
+        email = user_info.get('email')
+        
+        if not email:
+            return Response({'detail': 'Google account has no email'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 3. Normalize email to lowercase (Crucial for matching manual signups)
+        email = email.lower()
+
+        # 4. Find or Create User
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            username = email.split('@')[0]
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=None
+            )
+
+        # 5. Link to AllAuth SocialAccount (Good practice)
+        if not SocialAccount.objects.filter(user=user, provider='google').exists():
+            SocialAccount.objects.create(
+                user=user,
+                provider='google',
+                uid=user_info.get('sub'),
+                extra_data=user_info
+            )
+
+        # 6. Generate JWT Tokens Manually
+        refresh = RefreshToken.for_user(user)
+        
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'username': user.username
+            }
+        }, status=status.HTTP_200_OK)

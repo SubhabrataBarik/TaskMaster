@@ -8,4 +8,6 @@ urlpatterns = [
     path('me/', views.UserMeView.as_view(), name ='me'),
     path('logout/', views.UserLogoutView.as_view(), name ='logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    path('google/', views.GoogleLoginView.as_view(), name ='google_login'),
 ]
