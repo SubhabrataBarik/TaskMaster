@@ -28,7 +28,7 @@ class SubTaskSerializer(serializers.ModelSerializer):
 # TaskSerializer (read)
 class TaskSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True, source="tags.all")
     subtasks = SubTaskSerializer(many=True, read_only=True)
     owner = serializers.CharField(source="user.username", read_only=True)
 
@@ -78,21 +78,30 @@ class TaskCreateUpdateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         # request = self.context["request"]
-        request = self.context.get("request")
+        # request = self.context.get("request")
         tags_data = validated_data.pop("tags", [])
         subtasks_data = validated_data.pop("subtasks", [])
 
         with transaction.atomic():
-            task = Task.objects.create(
-                user=request.user,
-                **validated_data
-            )
+            # task = Task.objects.create(
+            #     user=request.user,
+            #     **validated_data
+            # )
+            task = Task.objects.create(**validated_data)
 
             # tags
+            # for tag_name in tags_data:
+            #     tag_name = tag_name.strip().lower()
+            #     tag, _ = Tag.objects.get_or_create(
+            #         user=request.user,
+            #         name=tag_name
+            #     )
+            #     task.tags.add(tag)
+
             for tag_name in tags_data:
                 tag_name = tag_name.strip().lower()
                 tag, _ = Tag.objects.get_or_create(
-                    user=request.user,
+                    user=task.user,
                     name=tag_name
                 )
                 task.tags.add(tag)

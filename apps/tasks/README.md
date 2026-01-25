@@ -23,7 +23,23 @@ POST /api/subtasks/ **don't use it**
 PATCH /api/subtasks/{subtask_id}/
 DELETE /api/subtasks/{subtask_id}/
 
+**-----------------Final Endpoints-----------------**
+GET    /tasks/
+POST   /tasks/
+GET    /tasks/{task_id}/
+PATCH  /tasks/{task_id}/
+DELETE /tasks/{task_id}/
+POST   /tasks/{task_id}/complete/
+GET    /tasks/{task_id}/subtasks/
+POST   /tasks/{task_id}/subtasks/
 
+GET    /subtasks/   **don't use it**
+POST   /subtasks/   **don't use it**
+GET    /subtasks/{subtask_id}/
+PATCH  /subtasks/{subtask_id}/
+DELETE /subtasks/{subtask_id}/
+POST   /subtasks/reorder/
+**--------------------------------------------------**
 
 
 

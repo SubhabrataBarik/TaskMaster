@@ -52,12 +52,42 @@ User = get_user_model()
 #         data["user"] = user
 #         return data
 
+# class UserRegistrationSerializer(serializers.ModelSerializer):
+#     password2 = serializers.CharField(write_only=True)
+
+#     class Meta:
+#         model = User
+#         fields = ["email", "password", "password2"]
+#         extra_kwargs = {
+#             "password": {"write_only": True}
+#         }
+
+#     def validate_email(self, value):
+#         return value.lower()
+
+#     def validate(self, attrs):
+#         if attrs["password"] != attrs["password2"]:
+#             raise serializers.ValidationError("Passwords do not match")
+
+#         if User.objects.filter(email__iexact=attrs["email"]).exists():
+#             raise serializers.ValidationError("Email already exists")
+
+#         return attrs
+
+#     def create(self, validated_data):
+#         validated_data.pop("password2")
+#         user = User.objects.create_user(
+#             email=validated_data["email"],
+#             password=validated_data["password"]
+#         )
+#         return user
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ["email", "password", "password2"]
+        fields = ["email", "username", "password", "password2"]
         extra_kwargs = {
             "password": {"write_only": True}
         }
@@ -76,12 +106,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("password2")
-        user = User.objects.create_user(
-            email=validated_data["email"],
-            password=validated_data["password"]
-        )
-        return user
-    
+        return User.objects.create_user(**validated_data)
+
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
