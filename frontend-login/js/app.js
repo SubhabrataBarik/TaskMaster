@@ -38,14 +38,43 @@ const app = {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
     },
-  
+
+    // --- Authenticated Fetch (AUTO REFRESH) ---
+    authFetch: async (url, options = {}) => {
+        let access = app.getAccessToken();
+
+        options.headers = {
+            ...(options.headers || {}),
+            Authorization: `Bearer ${access}`,
+            "Content-Type": "application/json",
+        };
+
+        let response = await fetch(url, options);
+
+        // Access token expired
+        if (response.status === 401) {
+            const newAccess = await app.refreshAccessToken();
+
+            if (!newAccess) {
+                app.logout();
+                return;
+            }
+
+            // Retry original request with new token
+            options.headers.Authorization = `Bearer ${newAccess}`;
+            response = await fetch(url, options);
+        }
+
+        return response;
+    },
+
     // --- API Methods ---
     
     // 1. Register
     register: async (formData) => {
         app.toggleLoading('signupBtn', 'signupSpinner', true);
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/register/`, {
+            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/register/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -93,78 +122,49 @@ const app = {
   refreshAccessToken: async () => {
     const refresh = app.getRefreshToken();
     if (!refresh) return null;
-    try {
-        const response = await fetch(`${CONFIG.API_BASE_URL}/token/refresh/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refresh })
-        });
-        const data = await response.json();
-        if (response.ok) {
-            localStorage.setItem('access_token', data.access);
-            if (data.refresh) {
-                localStorage.setItem('refresh_token', data.refresh);
-            }
-            return data.access;
-        } else {
-            console.error("Refresh failed:", data);
-            app.logout();
-        }
-    } catch (e) { 
-        console.error("Network error during refresh", e); 
+
+    const response = await fetch(`${CONFIG.API_BASE_URL}/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh })
+    });
+
+    if (!response.ok) {
+        app.logout();
+        return null;
     }
-    return null;
-  },
+
+    const data = await response.json();
+    localStorage.setItem('access_token', data.access);
+    return data.access;
+},
+
   
     // 4. Fetch Profile (Me)
     fetchAndRenderMe: async (ui) => {
-        let token = app.getAccessToken();
-        if (!token) {
-            window.location.href = 'index.html';
+        const response = await app.authFetch(
+            `${CONFIG.API_BASE_URL}/me/`
+        );
+    
+        if (!response || !response.ok) {
+            app.logout();
             return;
         }
-  
-        const fetchProfile = async (accessToken) => {
-            return fetch(`${CONFIG.API_BASE_URL}/me/`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-        };
-  
-        let response = await fetchProfile(token);
-  
-        // If expired, try to refresh once
-        if (response.status === 401) {
-            const newToken = await app.refreshAccessToken();
-            if (newToken) {
-                response = await fetchProfile(newToken);
-            } else {
-                app.logout();
-                return;
-            }
-        }
-  
-        if (response.ok) {
-            const user = await response.json();
-            ui.idEl.textContent = user.id;
-            ui.emailEl.textContent = user.email;
-            ui.usernameEl.textContent = user.username;
-        } else {
-            app.showAlert('meAlert', 'Failed to load profile.');
-        }
-  
-        // Setup Buttons
+    
+        const user = await response.json();
+    
+        ui.idEl.textContent = user.id;
+        ui.emailEl.textContent = user.email;
+        ui.usernameEl.textContent = user.username;
+    
         ui.logoutBtn.onclick = () => app.logout();
-        ui.refreshBtn.onclick = async () => {
-            const success = await app.refreshAccessToken();
-            app.showAlert('meAlert', success ? 'Token Refreshed!' : 'Refresh Failed', success ? 'success' : 'danger');
-        };
     },
   
     // 5. Logout
     logout: async () => {
         const refresh = app.getRefreshToken();
         if (refresh) {
-            await fetch(`${CONFIG.API_BASE_URL}/logout/`, {
+            await app.authFetch(`${CONFIG.API_BASE_URL}/logout/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refresh })
@@ -179,7 +179,7 @@ const app = {
         app.toggleLoading('googleBtn', 'loginSpinner', true); // Reuse spinner or add new one
         try {
             // We send the Google Token to YOUR backend
-            const response = await fetch(`${CONFIG.API_BASE_URL}/google/`, { 
+            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/google/`, { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ access_token: googleAccessToken })
@@ -262,5 +262,5 @@ const app = {
     app.initGoogleAuth();
   });
   
-  // Expose app to window for me.html inline script
+  // Expose app to window for html inline script
   window.app = app;

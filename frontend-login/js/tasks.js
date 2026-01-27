@@ -1,5 +1,5 @@
 /**
- * TaskMaster AI - Full Task & Subtask Controller
+ * TaskMaster AI - Complete Tasks & Subtasks Controller
  */
 
 const taskApp = {
@@ -14,9 +14,7 @@ const taskApp = {
 
     // --- 2. CORE TASK API CALLS ---
     
-    // GET /tasks/ (with Filters)
     loadTasks: async () => {
-        const todayStr = new Date().toISOString().split('T')[0];
         const query = new URLSearchParams();
 
         // Status Filter
@@ -51,11 +49,9 @@ const taskApp = {
             taskApp.renderDashboard(tasks);
         } catch (error) {
             console.error("Fetch Error:", error);
-            document.getElementById('list-today').innerHTML = '<div class="alert alert-danger">Failed to connect to backend.</div>';
         }
     },
 
-    // POST /tasks/ or PATCH /tasks/{id}/
     saveTask: async () => {
         const id = document.getElementById('taskId').value;
         const method = id ? 'PATCH' : 'POST';
@@ -82,7 +78,6 @@ const taskApp = {
         }
     },
 
-    // DELETE /tasks/{id}/
     deleteTask: async (forceId = null) => {
         const id = forceId || document.getElementById('taskId').value;
         if (!confirm("Permanently delete this task?")) return;
@@ -92,14 +87,11 @@ const taskApp = {
             headers: taskApp.getHeaders()
         });
         
-        const modalEl = document.getElementById('taskModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
         if (modalInstance) modalInstance.hide();
-        
         taskApp.loadTasks();
     },
 
-    // POST /tasks/{id}/complete/
     toggleComplete: async (id) => {
         await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/complete/`, {
             method: 'POST',
@@ -110,7 +102,6 @@ const taskApp = {
 
     // --- 3. SUBTASK API CALLS ---
 
-    // GET /tasks/{id}/subtasks/
     loadSubtasks: async (taskId) => {
         const res = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${taskId}/subtasks/`, {
             headers: taskApp.getHeaders()
@@ -119,7 +110,6 @@ const taskApp = {
         taskApp.renderSubtasks(subtasks);
     },
 
-    // POST /tasks/{id}/subtasks/
     addSubtask: async () => {
         const taskId = document.getElementById('taskId').value;
         const title = document.getElementById('newSubtaskTitle').value;
@@ -138,7 +128,6 @@ const taskApp = {
         taskApp.loadSubtasks(taskId);
     },
 
-    // PATCH /subtasks/{id}/
     toggleSubtask: async (subId, currentStatus) => {
         const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
         await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/${subId}/`, {
@@ -149,7 +138,6 @@ const taskApp = {
         taskApp.loadSubtasks(document.getElementById('taskId').value);
     },
 
-    // DELETE /subtasks/{id}/
     deleteSubtask: async (subId) => {
         await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/${subId}/`, {
             method: 'DELETE',
@@ -158,44 +146,66 @@ const taskApp = {
         taskApp.loadSubtasks(document.getElementById('taskId').value);
     },
 
-    // --- 4. UI RENDERING ---
+    reorderSubtasks: async (orderedData) => {
+        try {
+            const response = await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/reorder/`, {
+                method: 'POST',
+                headers: taskApp.getHeaders(),
+                body: JSON.stringify(orderedData)
+            });
 
+            if (response.ok) {
+                taskApp.loadSubtasks(document.getElementById('taskId').value);
+            }
+        } catch (e) {
+            console.error("Reorder failed:", e);
+        }
+    },
+
+    // --- 4. UI RENDERING & DRAG/DROP ---
     renderDashboard: (tasks) => {
         const containers = {
             overdue: document.getElementById('list-overdue'),
             today: document.getElementById('list-today'),
             upcoming: document.getElementById('list-upcoming')
         };
-
-        // Clear all containers (removes spinners)
-        Object.values(containers).forEach(c => c.innerHTML = '');
-        document.getElementById('section-overdue').classList.add('d-none');
-
+    
+        // 1. Clear everything (CRITICAL for filters to work)
+        Object.values(containers).forEach(c => {
+            if (c) c.innerHTML = ''; 
+        });
+        
+        // Hide overdue section by default
+        const overdueSection = document.getElementById('section-overdue');
+        if (overdueSection) overdueSection.classList.add('d-none');
+    
+        if (tasks.length === 0) {
+            containers.today.innerHTML = `
+                <div class="text-center py-5 w-100">
+                    <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-2">No tasks found matching these filters.</p>
+                </div>`;
+            return;
+        }
+    
         const todayStr = new Date().toISOString().split('T')[0];
-
+    
         tasks.forEach(task => {
             const card = taskApp.createCardHTML(task);
-            const taskDate = task.due_date;
-
-            if (task.status !== 'completed' && taskDate && taskDate < todayStr) {
+            if (task.status !== 'completed' && task.due_date && task.due_date < todayStr) {
                 containers.overdue.innerHTML += card;
-                document.getElementById('section-overdue').classList.remove('d-none');
-            } else if (taskDate === todayStr) {
+                if (overdueSection) overdueSection.classList.remove('d-none');
+            } else if (task.due_date === todayStr) {
                 containers.today.innerHTML += card;
             } else {
                 containers.upcoming.innerHTML += card;
             }
         });
-
-        if (!containers.today.innerHTML) {
-            containers.today.innerHTML = '<p class="text-muted text-center">No tasks for today.</p>';
-        }
     },
 
     createCardHTML: (task) => {
         const borderClass = `border-${task.priority}`;
         const isDone = task.status === 'completed';
-        
         return `
         <div class="col-md-6 col-lg-4">
             <div class="card task-card shadow-sm ${borderClass} h-100" onclick="taskApp.editTask('${task.id}')">
@@ -219,17 +229,64 @@ const taskApp = {
 
     renderSubtasks: (subtasks) => {
         const list = document.getElementById('subtaskList');
-        list.innerHTML = subtasks.map(st => `
-            <div class="d-flex align-items-center mb-2 bg-light p-2 rounded">
-                <input type="checkbox" class="form-check-input me-2" ${st.status === 'completed' ? 'checked' : ''} 
-                    onclick="taskApp.toggleSubtask('${st.id}', '${st.status}')">
-                <span class="flex-grow-1 small ${st.status === 'completed' ? 'text-decoration-line-through' : ''}">${st.title}</span>
-                <button type="button" class="btn btn-sm text-danger" onclick="taskApp.deleteSubtask('${st.id}')"><i class="bi bi-trash"></i></button>
-            </div>
-        `).join('');
+        const sorted = subtasks.sort((a, b) => a.order_index - b.order_index);
+
+        list.innerHTML = sorted.map((st, index) => {
+            const hours = st.estimated_hours ? parseFloat(st.estimated_hours).toFixed(1) : '0.0';
+            return `
+                <div class="d-flex align-items-center mb-2 bg-white p-2 rounded shadow-sm border subtask-item" 
+                     draggable="true" 
+                     data-id="${st.id}" 
+                     data-index="${index}"
+                     ondragstart="taskApp.handleDragStart(event)"
+                     ondragover="taskApp.handleDragOver(event)"
+                     ondragleave="taskApp.handleDragLeave(event)"
+                     ondrop="taskApp.handleDrop(event)">
+                    <i class="bi bi-grip-vertical text-muted me-2" style="cursor: grab;"></i>
+                    <input type="checkbox" class="form-check-input me-2" ${st.status === 'completed' ? 'checked' : ''} 
+                        onclick="taskApp.toggleSubtask('${st.id}', '${st.status}')">
+                    <span class="flex-grow-1 small ${st.status === 'completed' ? 'text-decoration-line-through text-muted' : ''}">${st.title}</span>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle me-2">${hours}h</span>
+                    <button type="button" class="btn btn-sm text-danger p-0" onclick="taskApp.deleteSubtask('${st.id}')"><i class="bi bi-trash"></i></button>
+                </div>`;
+        }).join('');
     },
 
-    // GET /tasks/{id}/
+    handleDragStart: (e) => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.index);
+        e.target.classList.add('dragging');
+    },
+
+    handleDragOver: (e) => {
+        e.preventDefault();
+        const el = e.target.closest('.subtask-item');
+        if (el) el.classList.add('drag-over');
+    },
+
+    handleDragLeave: (e) => {
+        const el = e.target.closest('.subtask-item');
+        if (el) el.classList.remove('drag-over');
+    },
+
+    handleDrop: async (e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        const toElement = e.target.closest('.subtask-item');
+        if (!toElement) return;
+        
+        toElement.classList.remove('drag-over');
+        const toIndex = parseInt(toElement.dataset.index);
+        if (fromIndex === toIndex) return;
+
+        const items = [...document.querySelectorAll('.subtask-item')];
+        const ids = items.map(el => el.dataset.id);
+        const [movedId] = ids.splice(fromIndex, 1);
+        ids.splice(toIndex, 0, movedId);
+
+        const payload = ids.map((id, index) => ({ id, order_index: index }));
+        await taskApp.reorderSubtasks(payload);
+    },
+
     editTask: async (id) => {
         const res = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, { headers: taskApp.getHeaders() });
         const task = await res.json();
@@ -259,17 +316,26 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'index.html';
         return;
     }
+
     taskApp.loadTasks();
 
-    // Listeners for filters
     document.querySelectorAll('.filter-status, .filter-priority').forEach(el => {
         el.addEventListener('change', () => taskApp.loadTasks());
     });
 
-    // Search Debounce
     let timer;
     document.getElementById('searchInput')?.addEventListener('input', () => {
         clearTimeout(timer);
         timer = setTimeout(() => taskApp.loadTasks(), 500);
     });
+
+    // ✅ LOGOUT FIX
+    const logoutLink = document.getElementById("logoutLink");
+
+    if (logoutLink) {
+        logoutLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.app.logout();
+        });
+    }
 });
