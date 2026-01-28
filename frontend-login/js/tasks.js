@@ -3,6 +3,13 @@
  */
 
 const taskApp = {
+
+    filterState: {
+        status: [],
+        priority: [],
+        timeline: null,
+    },
+
     // --- 1. CONFIG & HEADERS ---
     getHeaders: () => {
         const token = localStorage.getItem('access_token');
@@ -16,41 +23,43 @@ const taskApp = {
     
     loadTasks: async () => {
         const query = new URLSearchParams();
-
-        // Status Filter
-        const statuses = [];
-        if (document.getElementById('sPending')?.checked) statuses.push('pending');
-        if (document.getElementById('sProgress')?.checked) statuses.push('in_progress');
-        if (document.getElementById('sDone')?.checked) statuses.push('completed');
-        if (statuses.length > 0) query.append('status__in', statuses.join(','));
-
-        // Priority Filter
-        const priorities = [];
-        document.querySelectorAll('.filter-priority:checked').forEach(el => priorities.push(el.value));
-        if (priorities.length > 0) query.append('priority__in', priorities.join(','));
-
-        // Search
+    
+        if (taskApp.filterState.status.length) {
+            query.append('status__in', taskApp.filterState.status.join(','));
+        }
+    
+        if (taskApp.filterState.priority.length) {
+            query.append('priority__in', taskApp.filterState.priority.join(','));
+        }
+    
+        if (taskApp.filterState.timeline) {
+            query.append('timeline', taskApp.filterState.timeline);
+        }
+    
         const searchVal = document.getElementById('searchInput')?.value;
         if (searchVal) query.append('search', searchVal);
-
+    
         try {
-            const response = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/?${query.toString()}`, {
-                headers: taskApp.getHeaders()
-            });
-            
+            const response = await fetch(
+                `${CONFIG.TASKS_API_BASE_URL}/tasks/?${query.toString()}`,
+                { headers: taskApp.getHeaders() }
+            );
+    
             if (response.status === 401) {
                 localStorage.clear();
                 window.location.href = 'index.html';
                 return;
             }
-
+    
             const data = await response.json();
             const tasks = Array.isArray(data) ? data : (data.results || []);
             taskApp.renderDashboard(tasks);
+    
         } catch (error) {
             console.error("Fetch Error:", error);
         }
     },
+    
 
     saveTask: async () => {
         const id = document.getElementById('taskId').value;
@@ -307,21 +316,76 @@ const taskApp = {
         document.getElementById('taskForm').reset();
         document.getElementById('taskId').value = '';
         document.getElementById('subtaskList').innerHTML = '';
-    }
+    },
+
+    collectFilters: () => {
+        const status = [];
+        const priority = [];
+    
+        if (document.getElementById('sPending')?.checked) status.push('pending');
+        if (document.getElementById('sProgress')?.checked) status.push('in_progress');
+        if (document.getElementById('sDone')?.checked) status.push('completed');
+    
+        document.querySelectorAll('.filter-priority:checked')
+            .forEach(el => priority.push(el.value));
+    
+        taskApp.filterState.status = status;
+        taskApp.filterState.priority = priority;
+    
+        taskApp.updateActiveFiltersUI();
+    },
+
+    updateActiveFiltersUI: () => {
+        const el = document.getElementById('activeFilters');
+        const text = document.getElementById('activeFiltersText');
+    
+        const parts = [];
+        
+        if (taskApp.filterState.timeline) {
+            parts.push(`Timeline: ${taskApp.filterState.timeline}`);
+        }
+        
+        if (taskApp.filterState.status.length) {
+            parts.push(`Status: ${taskApp.filterState.status.join(', ')}`);
+        }
+    
+        if (taskApp.filterState.priority.length) {
+            parts.push(`Priority: ${taskApp.filterState.priority.join(', ')}`);
+        }
+    
+        if (parts.length === 0) {
+            el.classList.add('d-none');
+            text.innerText = '';
+        } else {
+            el.classList.remove('d-none');
+            text.innerText = parts.join(' | ');
+        }
+    },
+    
+    filterByTime: (value) => {
+        taskApp.filterState.timeline = value;
+        taskApp.updateActiveFiltersUI();
+        taskApp.loadTasks();
+    },
+    
+    
 };
 
 // --- 5. INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
+
+    document.getElementById('applyFiltersBtn')
+    ?.addEventListener('click', () => {
+        taskApp.collectFilters();
+        taskApp.loadTasks();
+    });
+
     if (!localStorage.getItem('access_token')) {
         window.location.href = 'index.html';
         return;
     }
 
     taskApp.loadTasks();
-
-    document.querySelectorAll('.filter-status, .filter-priority').forEach(el => {
-        el.addEventListener('change', () => taskApp.loadTasks());
-    });
 
     let timer;
     document.getElementById('searchInput')?.addEventListener('input', () => {
@@ -338,4 +402,21 @@ document.addEventListener('DOMContentLoaded', () => {
             window.app.logout();
         });
     }
+
+    document.getElementById('clearFiltersBtn')
+    ?.addEventListener('click', () => {
+        taskApp.filterState = {
+            status: [],
+            priority: [],
+            timeline: null,
+        };
+
+        // reset checkboxes
+        document.querySelectorAll('.filter-status, .filter-priority')
+            .forEach(el => el.checked = false);
+
+        taskApp.updateActiveFiltersUI();
+        taskApp.loadTasks();
+    });
+
 });
