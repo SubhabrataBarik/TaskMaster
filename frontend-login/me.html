@@ -15,26 +15,21 @@
       <div class="col-12 col-sm-10 col-md-8 col-lg-6">
         <div class="card shadow-sm">
           <div class="card-body p-4">
-            <h4 class="mb-3">Your profile</h4>
+            <h4 class="mb-2">Welcome 👋</h4>
 
-            <div id="meAlert"></div>
+            <h2 class="fw-bold text-primary mb-3" id="meUsername">—</h2>
 
-            <div class="mb-3">
-              <strong>ID:</strong>
-              <div id="meId">—</div>
-            </div>
-            <div class="mb-3">
-              <strong>Email:</strong>
-              <div id="meEmail">—</div>
-            </div>
-            <div class="mb-3">
-              <strong>Username:</strong>
-              <div id="meUsername">—</div>
-            </div>
+            <p class="text-muted mb-4">
+              You're successfully logged in. Ready to manage your tasks?
+            </p>
+
+            <a href="tasks.html" class="btn btn-primary w-100 mb-3"> Go to Task Dashboard → </a>
+
 
             <div class="d-flex gap-2 mt-3">
-              <button id="refreshBtn" class="btn btn-outline-primary">Refresh Access Token</button>
-              <button id="logoutBtn" class="btn btn-danger ms-auto">Logout</button>
+              <!-- <button id="refreshBtn" class="btn btn-outline-primary">Refresh Access Token</button> -->
+              <button class="btn btn-danger ms-auto" onclick="app.logout()"> Logout </button>
+
             </div>
 
             <div class="text-center mt-3">

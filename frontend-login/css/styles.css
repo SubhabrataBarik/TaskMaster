@@ -1,19 +1,69 @@
-/* css/styles.css */
-
-/* center card nicely on very short viewports */
+/* --- 1. Layout & Core Elements --- */
 html, body {
-    height: 100%;
+  height: 100%;
+}
+
+.card {
+  border-radius: 12px;
+}
+
+/* Alert styling space */
+#alertPlaceholder { 
+  margin-top: -0.5rem; 
+  margin-bottom: 0.75rem; 
+}
+
+/* --- 2. Subtask Drag & Drop UI --- */
+
+/* The item currently being moved */
+.subtask-item.dragging {
+  opacity: 0.4;
+  border: 2px dashed #0d6efd !important;
+  background-color: #f0f7ff !important;
+  transform: scale(0.98); /* Subtle "lifted" effect */
+}
+
+/* The item you are hovering over while dragging */
+.subtask-item.drag-over {
+  border-top: 3px solid #0d6efd !important;
+  background-color: #f8f9fa;
+  transition: border-top 0.1s ease-in-out;
+}
+
+/* The grip handle icon */
+.bi-grip-vertical {
+  cursor: grab;
+  font-size: 1.1rem;
+}
+
+.bi-grip-vertical:active {
+  cursor: grabbing;
+}
+
+/* --- 3. Responsive Tweaks --- */
+@media (max-width: 420px) {
+  .card-body { 
+      padding: 1.25rem; 
   }
-  
-  .card {
-    border-radius: 12px;
-  }
-  
-  /* small responsive tweaks */
-  @media (max-width: 420px) {
-    .card-body { padding: 1.25rem; }
-  }
-  
-  /* alert styling space */
-  #alertPlaceholder { margin-top: -0.5rem; margin-bottom: 0.75rem; }
-  
+}
+
+.nav-link {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  margin-bottom: 5px;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff !important;
+}
+
+.nav-link.active {
+  background-color: #0d6efd !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.text-white-50 {
+  font-weight: 500;
+}

@@ -1,0 +1,36 @@
+# Core ML stack
+numpy==2.4.1
+scipy==1.17.0
+scikit-learn==1.8.0
+
+# Deep learning
+torch==2.2.2
+
+# NLP / Transformers
+transformers==4.57.5
+sentence-transformers==5.2.0
+tokenizers==0.22.2
+
+# Vector DB / similarity
+faiss-cpu==1.13.2
+
+# LLM orchestration
+langchain==1.2.4
+langchain-community==0.4.1
+langchain-core==1.2.7
+langgraph==1.0.6
+langsmith==0.6.4
+
+# Data utilities
+pandas==2.3.3
+pyarrow==22.0.0
+datasets==4.5.0
+
+# HTTP / APIs
+requests==2.32.5
+httpx==0.28.1
+
+# Serialization
+orjson==3.11.5
+pydantic==2.12.5
+pydantic-settings==2.12.0

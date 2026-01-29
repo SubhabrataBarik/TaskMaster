@@ -1,9 +1,16 @@
 /**
- * TaskMaster AI - Task Management Logic
+ * TaskMaster AI - Complete Tasks & Subtasks Controller
  */
 
 const taskApp = {
-    // --- Helpers ---
+
+    filterState: {
+        status: [],
+        priority: [],
+        timeline: null,
+    },
+
+    // --- 1. CONFIG & HEADERS ---
     getHeaders: () => {
         const token = localStorage.getItem('access_token');
         return {
@@ -12,171 +19,51 @@ const taskApp = {
         };
     },
 
-    // --- 1. Fetch & Filter Tasks ---
+    // --- 2. CORE TASK API CALLS ---
+    
     loadTasks: async () => {
-        // A. Get Time Filter (Radio)
-        const timeRadio = document.querySelector('input[name="timeFilter"]:checked');
-        const timeFilter = timeRadio ? timeRadio.value : 'all';
-
-        // B. Get Status Filters (Checkboxes)
-        const statuses = [];
-        if (document.getElementById('sTodo')?.checked) statuses.push('todo');
-        if (document.getElementById('sProgress')?.checked) statuses.push('in_progress');
-        if (document.getElementById('sDone')?.checked) statuses.push('done');
-
-        // C. Get Priority Filters (Checkboxes)
-        const priorities = [];
-        document.querySelectorAll('.filter-priority:checked').forEach(el => priorities.push(el.value));
-
-        // D. Build Query Params
-        let query = new URLSearchParams();
-
-        // Add lists (status__in, priority__in)
-        if (statuses.length > 0) query.append('status__in', statuses.join(','));
-        if (priorities.length > 0) query.append('priority__in', priorities.join(','));
-
-        // Add Time Logic
-        const today = new Date().toISOString().split('T')[0];
-        
-        if (timeFilter === 'today') {
-            query.append('due_date', today);
-        } else if (timeFilter === 'overdue') {
-            query.append('due_date__lt', today);
-            // Overdue usually implies incomplete tasks, but we respect the status checkboxes too
-        } else if (timeFilter === 'week') {
-            let nextWeek = new Date();
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            const nextWeekStr = nextWeek.toISOString().split('T')[0];
-            query.append('due_date__range', `${today},${nextWeekStr}`);
+        const query = new URLSearchParams();
+    
+        if (taskApp.filterState.status.length) {
+            query.append('status__in', taskApp.filterState.status.join(','));
         }
-
-        // Add Search
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput && searchInput.value) {
-            query.append('search', searchInput.value);
+    
+        if (taskApp.filterState.priority.length) {
+            query.append('priority__in', taskApp.filterState.priority.join(','));
         }
-
-        // E. Fetch from API
+    
+        if (taskApp.filterState.timeline) {
+            query.append('timeline', taskApp.filterState.timeline);
+        }
+    
+        const searchVal = document.getElementById('searchInput')?.value;
+        if (searchVal) query.append('search', searchVal);
+    
         try {
-            const response = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/?${query.toString()}`, {
-                headers: taskApp.getHeaders()
-            });
-
+            const response = await fetch(
+                `${CONFIG.TASKS_API_BASE_URL}/tasks/?${query.toString()}`,
+                { headers: taskApp.getHeaders() }
+            );
+    
             if (response.status === 401) {
-                window.location.href = 'index.html'; // Redirect if token expired
+                localStorage.clear();
+                window.location.href = 'index.html';
                 return;
             }
-
+    
             const data = await response.json();
-            // Supports both paginated {results: []} and flat [] responses
-            const taskList = Array.isArray(data) ? data : (data.results || []);
-            taskApp.renderDashboard(taskList);
-
+            const tasks = Array.isArray(data) ? data : (data.results || []);
+            taskApp.renderDashboard(tasks);
+    
         } catch (error) {
-            console.error("Error loading tasks:", error);
+            console.error("Fetch Error:", error);
         }
     },
+    
 
-    // --- 2. Render Dashboard (Group by Date) ---
-    renderDashboard: (tasks) => {
-        const overdueContainer = document.getElementById('list-overdue');
-        const todayContainer = document.getElementById('list-today');
-        const upcomingContainer = document.getElementById('list-upcoming');
-        const overdueSection = document.getElementById('section-overdue');
-
-        // Reset UI
-        overdueContainer.innerHTML = '';
-        todayContainer.innerHTML = '';
-        upcomingContainer.innerHTML = '';
-
-        const todayStr = new Date().toISOString().split('T')[0];
-        let hasOverdue = false;
-
-        if (tasks.length === 0) {
-            todayContainer.innerHTML = '<div class="col-12 text-muted text-center py-4">No tasks found matching your filters.</div>';
-            overdueSection.classList.add('d-none');
-            return;
-        }
-
-        tasks.forEach(task => {
-            const taskDate = task.due_date ? task.due_date.split('T')[0] : null;
-            const cardHTML = taskApp.createCardHTML(task);
-
-            if (task.status === 'done') {
-                // Completed tasks: If due today, show in Today, otherwise Upcoming
-                if (taskDate === todayStr) todayContainer.innerHTML += cardHTML;
-                else upcomingContainer.innerHTML += cardHTML;
-            
-            } else if (taskDate && taskDate < todayStr) {
-                // Overdue & Not Done
-                overdueContainer.innerHTML += cardHTML;
-                hasOverdue = true;
-            } else if (taskDate === todayStr) {
-                // Due Today
-                todayContainer.innerHTML += cardHTML;
-            } else {
-                // Future or No Date
-                upcomingContainer.innerHTML += cardHTML;
-            }
-        });
-
-        // Toggle Overdue Section Visibility
-        if (hasOverdue) overdueSection.classList.remove('d-none');
-        else overdueSection.classList.add('d-none');
-    },
-
-    // --- 3. Generate Card HTML ---
-    createCardHTML: (task) => {
-        const badgeColor = {
-            'high': 'danger',
-            'medium': 'warning text-dark',
-            'low': 'success'
-        }[task.priority] || 'secondary';
-
-        const borderClass = `border-${task.priority}`; // Matches CSS classes in HTML
-        const dateDisplay = task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No Date';
-        
-        // Strikethrough style for completed tasks
-        const titleStyle = task.status === 'done' ? 'text-decoration-line-through text-muted' : '';
-
-        return `
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="card shadow-sm task-card ${borderClass} h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="badge bg-${badgeColor}">${task.priority.toUpperCase()}</span>
-                        <div class="dropdown">
-                            <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="taskApp.editTask('${task.id}')">Edit</a></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="taskApp.deleteTask('${task.id}')">Delete</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <h5 class="card-title ${titleStyle}">${task.title}</h5>
-                    <p class="card-text text-muted small text-truncate">${task.description || ''}</p>
-                    
-                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                        <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>${dateDisplay}</small>
-                        
-                        <button class="btn btn-sm ${task.status === 'done' ? 'btn-outline-secondary' : 'btn-outline-success'}" 
-                                onclick="taskApp.toggleComplete('${task.id}', '${task.status}')">
-                            ${task.status === 'done' ? '<i class="bi bi-arrow-counterclockwise"></i> Undo' : '<i class="bi bi-check-lg"></i> Complete'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        `;
-    },
-
-    // --- 4. Save (Create/Update) ---
     saveTask: async () => {
         const id = document.getElementById('taskId').value;
-        const method = id ? 'PATCH' : 'POST'; // Use PATCH for updates
+        const method = id ? 'PATCH' : 'POST';
         const url = id ? `${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/` : `${CONFIG.TASKS_API_BASE_URL}/tasks/`;
 
         const payload = {
@@ -184,129 +71,352 @@ const taskApp = {
             description: document.getElementById('taskDesc').value,
             priority: document.getElementById('taskPriority').value,
             status: document.getElementById('taskStatus').value,
-            due_date: document.getElementById('taskDueDate').value || null
+            due_date: document.getElementById('taskDueDate').value || null,
+            due_time: document.getElementById('taskDueTime').value || null
         };
 
+        const res = await fetch(url, {
+            method: method,
+            headers: taskApp.getHeaders(),
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+            taskApp.loadTasks();
+        }
+    },
+
+    deleteTask: async (forceId = null) => {
+        const id = forceId || document.getElementById('taskId').value;
+        if (!confirm("Permanently delete this task?")) return;
+
+        await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, {
+            method: 'DELETE',
+            headers: taskApp.getHeaders()
+        });
+        
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
+        if (modalInstance) modalInstance.hide();
+        taskApp.loadTasks();
+    },
+
+    toggleComplete: async (id) => {
+        await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/complete/`, {
+            method: 'POST',
+            headers: taskApp.getHeaders()
+        });
+        taskApp.loadTasks();
+    },
+
+    // --- 3. SUBTASK API CALLS ---
+
+    loadSubtasks: async (taskId) => {
+        const res = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${taskId}/subtasks/`, {
+            headers: taskApp.getHeaders()
+        });
+        const subtasks = await res.json();
+        taskApp.renderSubtasks(subtasks);
+    },
+
+    addSubtask: async () => {
+        const taskId = document.getElementById('taskId').value;
+        const title = document.getElementById('newSubtaskTitle').value;
+        const hours = document.getElementById('newSubtaskHours').value;
+
+        if (!title) return;
+
+        await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${taskId}/subtasks/`, {
+            method: 'POST',
+            headers: taskApp.getHeaders(),
+            body: JSON.stringify({ title, estimated_hours: hours || 0 })
+        });
+
+        document.getElementById('newSubtaskTitle').value = '';
+        document.getElementById('newSubtaskHours').value = '';
+        taskApp.loadSubtasks(taskId);
+    },
+
+    toggleSubtask: async (subId, currentStatus) => {
+        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+        await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/${subId}/`, {
+            method: 'PATCH',
+            headers: taskApp.getHeaders(),
+            body: JSON.stringify({ status: newStatus })
+        });
+        taskApp.loadSubtasks(document.getElementById('taskId').value);
+    },
+
+    deleteSubtask: async (subId) => {
+        await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/${subId}/`, {
+            method: 'DELETE',
+            headers: taskApp.getHeaders()
+        });
+        taskApp.loadSubtasks(document.getElementById('taskId').value);
+    },
+
+    reorderSubtasks: async (orderedData) => {
         try {
-            const response = await fetch(url, {
-                method: method,
+            const response = await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/reorder/`, {
+                method: 'POST',
                 headers: taskApp.getHeaders(),
-                body: JSON.stringify(payload)
+                body: JSON.stringify(orderedData)
             });
 
             if (response.ok) {
-                // Close Modal manually using Bootstrap instance
-                const modalEl = document.getElementById('taskModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-                
-                // Refresh Task List
-                taskApp.loadTasks();
-            } else {
-                const err = await response.json();
-                alert("Failed to save: " + JSON.stringify(err));
+                taskApp.loadSubtasks(document.getElementById('taskId').value);
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error("Reorder failed:", e);
+        }
     },
 
-    // --- 5. Delete Task ---
-    deleteTask: async (id) => {
-        if (!confirm("Are you sure you want to delete this task?")) return;
+    // --- 4. UI RENDERING & DRAG/DROP ---
+    renderDashboard: (tasks) => {
+        const containers = {
+            overdue: document.getElementById('list-overdue'),
+            today: document.getElementById('list-today'),
+            upcoming: document.getElementById('list-upcoming')
+        };
+    
+        // 1. Clear everything (CRITICAL for filters to work)
+        Object.values(containers).forEach(c => {
+            if (c) c.innerHTML = ''; 
+        });
         
-        try {
-            await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, {
-                method: 'DELETE',
-                headers: taskApp.getHeaders()
-            });
-            taskApp.loadTasks(); // Refresh
-        } catch (e) { console.error(e); }
+        // Hide overdue section by default
+        const overdueSection = document.getElementById('section-overdue');
+        if (overdueSection) overdueSection.classList.add('d-none');
+    
+        if (tasks.length === 0) {
+            containers.today.innerHTML = `
+                <div class="text-center py-5 w-100">
+                    <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-2">No tasks found matching these filters.</p>
+                </div>`;
+            return;
+        }
+    
+        const todayStr = new Date().toISOString().split('T')[0];
+    
+        tasks.forEach(task => {
+            const card = taskApp.createCardHTML(task);
+            if (task.status !== 'completed' && task.due_date && task.due_date < todayStr) {
+                containers.overdue.innerHTML += card;
+                if (overdueSection) overdueSection.classList.remove('d-none');
+            } else if (task.due_date === todayStr) {
+                containers.today.innerHTML += card;
+            } else {
+                containers.upcoming.innerHTML += card;
+            }
+        });
     },
 
-    // --- 6. Quick Complete Toggle ---
-    toggleComplete: async (id, currentStatus) => {
-        const newStatus = currentStatus === 'done' ? 'todo' : 'done';
-        try {
-            await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, {
-                method: 'PATCH',
-                headers: taskApp.getHeaders(),
-                body: JSON.stringify({ status: newStatus })
-            });
-            taskApp.loadTasks();
-        } catch (e) { console.error(e); }
+    createCardHTML: (task) => {
+        const borderClass = `border-${task.priority}`;
+        const isDone = task.status === 'completed';
+        return `
+        <div class="col-md-6 col-lg-4">
+            <div class="card task-card shadow-sm ${borderClass} h-100" onclick="taskApp.editTask('${task.id}')">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="fw-bold ${isDone ? 'text-decoration-line-through text-muted' : ''}">${task.title}</h6>
+                        <span class="badge rounded-pill bg-light text-dark border small">${task.status}</span>
+                    </div>
+                    <p class="small text-muted text-truncate mb-2">${task.description || 'No description'}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="small text-muted"><i class="bi bi-clock me-1"></i>${task.due_date || 'No Date'}</span>
+                        <button class="btn btn-sm ${isDone ? 'btn-success' : 'btn-outline-success'}" 
+                                onclick="event.stopPropagation(); taskApp.toggleComplete('${task.id}')">
+                            <i class="bi ${isDone ? 'bi-check-all' : 'bi-check'}"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
     },
 
-    // --- 7. Modal Handlers ---
+    renderSubtasks: (subtasks) => {
+        const list = document.getElementById('subtaskList');
+        const sorted = subtasks.sort((a, b) => a.order_index - b.order_index);
+
+        list.innerHTML = sorted.map((st, index) => {
+            const hours = st.estimated_hours ? parseFloat(st.estimated_hours).toFixed(1) : '0.0';
+            return `
+                <div class="d-flex align-items-center mb-2 bg-white p-2 rounded shadow-sm border subtask-item" 
+                     draggable="true" 
+                     data-id="${st.id}" 
+                     data-index="${index}"
+                     ondragstart="taskApp.handleDragStart(event)"
+                     ondragover="taskApp.handleDragOver(event)"
+                     ondragleave="taskApp.handleDragLeave(event)"
+                     ondrop="taskApp.handleDrop(event)">
+                    <i class="bi bi-grip-vertical text-muted me-2" style="cursor: grab;"></i>
+                    <input type="checkbox" class="form-check-input me-2" ${st.status === 'completed' ? 'checked' : ''} 
+                        onclick="taskApp.toggleSubtask('${st.id}', '${st.status}')">
+                    <span class="flex-grow-1 small ${st.status === 'completed' ? 'text-decoration-line-through text-muted' : ''}">${st.title}</span>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle me-2">${hours}h</span>
+                    <button type="button" class="btn btn-sm text-danger p-0" onclick="taskApp.deleteSubtask('${st.id}')"><i class="bi bi-trash"></i></button>
+                </div>`;
+        }).join('');
+    },
+
+    handleDragStart: (e) => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.index);
+        e.target.classList.add('dragging');
+    },
+
+    handleDragOver: (e) => {
+        e.preventDefault();
+        const el = e.target.closest('.subtask-item');
+        if (el) el.classList.add('drag-over');
+    },
+
+    handleDragLeave: (e) => {
+        const el = e.target.closest('.subtask-item');
+        if (el) el.classList.remove('drag-over');
+    },
+
+    handleDrop: async (e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        const toElement = e.target.closest('.subtask-item');
+        if (!toElement) return;
+        
+        toElement.classList.remove('drag-over');
+        const toIndex = parseInt(toElement.dataset.index);
+        if (fromIndex === toIndex) return;
+
+        const items = [...document.querySelectorAll('.subtask-item')];
+        const ids = items.map(el => el.dataset.id);
+        const [movedId] = ids.splice(fromIndex, 1);
+        ids.splice(toIndex, 0, movedId);
+
+        const payload = ids.map((id, index) => ({ id, order_index: index }));
+        await taskApp.reorderSubtasks(payload);
+    },
+
     editTask: async (id) => {
-        try {
-            const res = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, { headers: taskApp.getHeaders() });
-            if (!res.ok) throw new Error("Task not found");
-            
-            const task = await res.json();
+        const res = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, { headers: taskApp.getHeaders() });
+        const task = await res.json();
 
-            // Populate Form
-            document.getElementById('taskId').value = task.id;
-            document.getElementById('taskTitle').value = task.title;
-            document.getElementById('taskDesc').value = task.description || '';
-            document.getElementById('taskPriority').value = task.priority;
-            document.getElementById('taskStatus').value = task.status;
-            document.getElementById('taskDueDate').value = task.due_date ? task.due_date.split('T')[0] : '';
-            
-            // UI Tweaks
-            document.getElementById('modalTitle').innerText = "Edit Task";
-            
-            // Show Modal
-            new bootstrap.Modal(document.getElementById('taskModal')).show();
-        } catch (e) { console.error(e); }
+        document.getElementById('taskId').value = task.id;
+        document.getElementById('taskTitle').value = task.title;
+        document.getElementById('taskDesc').value = task.description || '';
+        document.getElementById('taskPriority').value = task.priority;
+        document.getElementById('taskStatus').value = task.status;
+        document.getElementById('taskDueDate').value = task.due_date || '';
+        document.getElementById('taskDueTime').value = task.due_time || '';
+        
+        taskApp.loadSubtasks(id);
+        new bootstrap.Modal(document.getElementById('taskModal')).show();
     },
 
     resetModal: () => {
         document.getElementById('taskForm').reset();
-        document.getElementById('taskId').value = ''; // Clear ID implies CREATE mode
-        document.getElementById('modalTitle').innerText = "New Task";
-    }
+        document.getElementById('taskId').value = '';
+        document.getElementById('subtaskList').innerHTML = '';
+    },
+
+    collectFilters: () => {
+        const status = [];
+        const priority = [];
+    
+        if (document.getElementById('sPending')?.checked) status.push('pending');
+        if (document.getElementById('sProgress')?.checked) status.push('in_progress');
+        if (document.getElementById('sDone')?.checked) status.push('completed');
+    
+        document.querySelectorAll('.filter-priority:checked')
+            .forEach(el => priority.push(el.value));
+    
+        taskApp.filterState.status = status;
+        taskApp.filterState.priority = priority;
+    
+        taskApp.updateActiveFiltersUI();
+    },
+
+    updateActiveFiltersUI: () => {
+        const el = document.getElementById('activeFilters');
+        const text = document.getElementById('activeFiltersText');
+    
+        const parts = [];
+        
+        if (taskApp.filterState.timeline) {
+            parts.push(`Timeline: ${taskApp.filterState.timeline}`);
+        }
+        
+        if (taskApp.filterState.status.length) {
+            parts.push(`Status: ${taskApp.filterState.status.join(', ')}`);
+        }
+    
+        if (taskApp.filterState.priority.length) {
+            parts.push(`Priority: ${taskApp.filterState.priority.join(', ')}`);
+        }
+    
+        if (parts.length === 0) {
+            el.classList.add('d-none');
+            text.innerText = '';
+        } else {
+            el.classList.remove('d-none');
+            text.innerText = parts.join(' | ');
+        }
+    },
+    
+    filterByTime: (value) => {
+        taskApp.filterState.timeline = value;
+        taskApp.updateActiveFiltersUI();
+        taskApp.loadTasks();
+    },
+    
+    
 };
 
-// --- Initialization ---
+// --- 5. INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Auth Check
+
+    document.getElementById('applyFiltersBtn')
+    ?.addEventListener('click', () => {
+        taskApp.collectFilters();
+        taskApp.loadTasks();
+    });
+
     if (!localStorage.getItem('access_token')) {
         window.location.href = 'index.html';
         return;
     }
 
-    // 2. Initial Load
     taskApp.loadTasks();
 
-    // 3. Attach Filter Listeners (Radio & Checkboxes)
-    const filters = document.querySelectorAll('.filter-time, .filter-status, .filter-priority');
-    filters.forEach(input => {
-        input.addEventListener('change', () => {
-            taskApp.loadTasks();
-        });
+    let timer;
+    document.getElementById('searchInput')?.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => taskApp.loadTasks(), 500);
     });
 
-    // 4. Search Listener (Debounced)
-    let searchTimeout;
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => taskApp.loadTasks(), 400);
+    // ✅ LOGOUT FIX
+    const logoutLink = document.getElementById("logoutLink");
+
+    if (logoutLink) {
+        logoutLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.app.logout();
         });
     }
 
-    // 5. Logout Hook (Reusing your app.js logic if available)
-    const logoutLink = document.getElementById('logoutLink');
-    if (logoutLink) {
-        logoutLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (window.app && window.app.logout) {
-                window.app.logout();
-            } else {
-                // Fallback logout
-                localStorage.clear();
-                window.location.href = 'index.html';
-            }
-        });
-    }
+    document.getElementById('clearFiltersBtn')
+    ?.addEventListener('click', () => {
+        taskApp.filterState = {
+            status: [],
+            priority: [],
+            timeline: null,
+        };
+
+        // reset checkboxes
+        document.querySelectorAll('.filter-status, .filter-priority')
+            .forEach(el => el.checked = false);
+
+        taskApp.updateActiveFiltersUI();
+        taskApp.loadTasks();
+    });
+
 });
