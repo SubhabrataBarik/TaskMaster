@@ -16,4 +16,5 @@ RUN python manage.py collectstatic --noinput
 
 
 # Command
-CMD ["gunicorn", "TaskMaster.wsgi:application"]
+# CMD ["gunicorn", "TaskMaster.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "TaskMaster.wsgi:application"]
