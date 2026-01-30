@@ -37,5 +37,4 @@ CSRF_TRUSTED_ORIGINS = [
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Celery
-CELERY_BROKER_URL = env("REDIS_URL")
-CELERY_RESULT_BACKEND = "django-db"
+CELERY_TASK_ALWAYS_EAGER = True
