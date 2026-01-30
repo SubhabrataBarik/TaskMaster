@@ -41,7 +41,7 @@ const taskApp = {
     
         try {
             const response = await fetch(
-                `${CONFIG.TASKS_API_BASE_URL}/tasks/?${query.toString()}`,
+                `${CONFIG.API_BASE_URL}/tasks/?${query.toString()}`,
                 { headers: taskApp.getHeaders() }
             );
     
@@ -64,7 +64,7 @@ const taskApp = {
     saveTask: async () => {
         const id = document.getElementById('taskId').value;
         const method = id ? 'PATCH' : 'POST';
-        const url = id ? `${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/` : `${CONFIG.TASKS_API_BASE_URL}/tasks/`;
+        const url = id ? `${CONFIG.API_BASE_URL}/tasks/${id}/` : `${CONFIG.API_BASE_URL}/tasks/`;
 
         const payload = {
             title: document.getElementById('taskTitle').value,
@@ -91,7 +91,7 @@ const taskApp = {
         const id = forceId || document.getElementById('taskId').value;
         if (!confirm("Permanently delete this task?")) return;
 
-        await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, {
+        await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`, {
             method: 'DELETE',
             headers: taskApp.getHeaders()
         });
@@ -102,7 +102,7 @@ const taskApp = {
     },
 
     toggleComplete: async (id) => {
-        await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/complete/`, {
+        await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/complete/`, {
             method: 'POST',
             headers: taskApp.getHeaders()
         });
@@ -112,7 +112,7 @@ const taskApp = {
     // --- 3. SUBTASK API CALLS ---
 
     loadSubtasks: async (taskId) => {
-        const res = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${taskId}/subtasks/`, {
+        const res = await fetch(`${CONFIG.API_BASE_URL}/tasks/${taskId}/subtasks/`, {
             headers: taskApp.getHeaders()
         });
         const subtasks = await res.json();
@@ -126,7 +126,7 @@ const taskApp = {
 
         if (!title) return;
 
-        await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${taskId}/subtasks/`, {
+        await fetch(`${CONFIG.API_BASE_URL}/tasks/${taskId}/subtasks/`, {
             method: 'POST',
             headers: taskApp.getHeaders(),
             body: JSON.stringify({ title, estimated_hours: hours || 0 })
@@ -139,7 +139,7 @@ const taskApp = {
 
     toggleSubtask: async (subId, currentStatus) => {
         const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
-        await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/${subId}/`, {
+        await fetch(`${CONFIG.API_BASE_URL}/subtasks/${subId}/`, {
             method: 'PATCH',
             headers: taskApp.getHeaders(),
             body: JSON.stringify({ status: newStatus })
@@ -148,7 +148,7 @@ const taskApp = {
     },
 
     deleteSubtask: async (subId) => {
-        await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/${subId}/`, {
+        await fetch(`${CONFIG.API_BASE_URL}/subtasks/${subId}/`, {
             method: 'DELETE',
             headers: taskApp.getHeaders()
         });
@@ -157,7 +157,7 @@ const taskApp = {
 
     reorderSubtasks: async (orderedData) => {
         try {
-            const response = await fetch(`${CONFIG.TASKS_API_BASE_URL}/subtasks/reorder/`, {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/subtasks/reorder/`, {
                 method: 'POST',
                 headers: taskApp.getHeaders(),
                 body: JSON.stringify(orderedData)
@@ -297,7 +297,7 @@ const taskApp = {
     },
 
     editTask: async (id) => {
-        const res = await fetch(`${CONFIG.TASKS_API_BASE_URL}/tasks/${id}/`, { headers: taskApp.getHeaders() });
+        const res = await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`, { headers: taskApp.getHeaders() });
         const task = await res.json();
 
         document.getElementById('taskId').value = task.id;

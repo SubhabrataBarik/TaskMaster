@@ -74,7 +74,7 @@ const app = {
     register: async (formData) => {
         app.toggleLoading('signupBtn', 'signupSpinner', true);
         try {
-            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/register/`, {
+            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/auth/register/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -98,7 +98,7 @@ const app = {
     login: async (email, password) => {
         app.toggleLoading('loginBtn', 'loginSpinner', true);
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/login/`, {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/auth/login/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -123,7 +123,7 @@ const app = {
     const refresh = app.getRefreshToken();
     if (!refresh) return null;
 
-    const response = await fetch(`${CONFIG.API_BASE_URL}/token/refresh/`, {
+    const response = await fetch(`${CONFIG.API_BASE_URL}/auth/token/refresh/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh })
@@ -143,7 +143,7 @@ const app = {
     // 4. Fetch Profile (Me)
     fetchAndRenderMe: async (ui) => {
         const response = await app.authFetch(
-            `${CONFIG.API_BASE_URL}/me/`
+            `${CONFIG.API_BASE_URL}/auth/me/`
         );
     
         if (!response || !response.ok) {
@@ -164,7 +164,7 @@ const app = {
     logout: async () => {
         const refresh = app.getRefreshToken();
         if (refresh) {
-            await app.authFetch(`${CONFIG.API_BASE_URL}/logout/`, {
+            await app.authFetch(`${CONFIG.API_BASE_URL}/auth/logout/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refresh })
@@ -179,7 +179,7 @@ const app = {
         app.toggleLoading('googleBtn', 'loginSpinner', true); // Reuse spinner or add new one
         try {
             // We send the Google Token to YOUR backend
-            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/google/`, { 
+            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/auth/google/`, { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ access_token: googleAccessToken })
