@@ -74,7 +74,7 @@ const app = {
     register: async (formData) => {
         app.toggleLoading('signupBtn', 'signupSpinner', true);
         try {
-            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/auth/register/`, {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/auth/register/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -179,7 +179,7 @@ const app = {
         app.toggleLoading('googleBtn', 'loginSpinner', true); // Reuse spinner or add new one
         try {
             // We send the Google Token to YOUR backend
-            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/auth/google/`, { 
+            const response = await fetch(`${CONFIG.API_BASE_URL}/auth/google/`, { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ access_token: googleAccessToken })
