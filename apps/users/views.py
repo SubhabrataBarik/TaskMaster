@@ -6,7 +6,10 @@ from rest_framework import status, permissions
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from .serializers import UserRegistrationSerializer
 from .serializers import LoginSerializer
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
+@method_decorator(csrf_exempt, name="dispatch")
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
 
@@ -26,7 +29,7 @@ class UserRegistrationView(APIView):
             })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@method_decorator(csrf_exempt, name="dispatch")
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -57,6 +60,7 @@ class UserMeView(APIView):
             "email": user.email
         })
 
+@method_decorator(csrf_exempt, name="dispatch")
 class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -80,6 +84,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from allauth.socialaccount.models import SocialAccount
 User = get_user_model()
+@method_decorator(csrf_exempt, name="dispatch")
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
