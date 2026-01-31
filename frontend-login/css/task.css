@@ -322,3 +322,90 @@
     background: transparent;
   }
   
+
+  /* ======================================================
+   FINAL DARK MODE POLISH
+   Fix modal whites + improve text visibility
+   ====================================================== */
+
+/* ---------- Stronger text hierarchy ---------- */
+
+:root {
+  --text-soft: #cbd5f5;     /* readable secondary */
+  --text-muted: #94a3b8;   /* keep muted for labels only */
+}
+
+/* Upgrade common text usage */
+
+p,
+.small,
+.text-muted {
+  color: var(--text-soft) !important;
+}
+
+/* Headings stronger */
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+}
+
+/* ---------- FORCE modal header/footer dark ---------- */
+
+.modal-header,
+.modal-footer,
+.modal-header.bg-light,
+.modal-footer.bg-light {
+  background-color: var(--bg-panel) !important;
+  border-color: var(--border) !important;
+  color: var(--text-main);
+}
+
+/* Modal title clarity */
+
+.modal-title {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* ---------- Delete button visibility ---------- */
+
+.modal-footer .btn-link,
+.modal-footer .btn-link.text-danger {
+  color: var(--danger) !important;
+  font-weight: 500;
+}
+
+.modal-footer .btn-link:hover {
+  color: #f87171 !important;
+  text-decoration: none;
+}
+
+/* ---------- Improve task description visibility ---------- */
+
+.task-card p {
+  color: var(--text-soft);
+}
+
+/* ---------- Improve filter text ---------- */
+
+#activeFilters,
+#activeFiltersText {
+  color: var(--text-soft) !important;
+}
+
+/* ---------- Improve labels ---------- */
+
+label,
+.form-label {
+  color: var(--text-soft);
+}
+
+/* ---------- Improve dropdown text ---------- */
+
+.dropdown-item {
+  color: var(--text-soft);
+}
+
+.dropdown-item:hover {
+  color: var(--text-main) !important;
+}
