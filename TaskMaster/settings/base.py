@@ -194,22 +194,28 @@ TEMPLATES = [
 
 # CORS
 from corsheaders.defaults import default_headers
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    "https://taskmaster.vercel.app",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+# CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[
+        "http://127.0.0.1:8080",
+        "http://localhost:8080",
+        "https://taskmaster.vercel.app",
+    ],
+)
 CORS_ALLOW_CREDENTIALS = True
 
+# CORS_ALLOW_HEADERS = list(default_headers) + [
+#     "accept",
+#     "authorization",
+#     "content-type",
+#     "user-agent",
+#     "x-csrftoken",
+#     "x-requested-with",
+# ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
-    "accept",
     "authorization",
     "content-type",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
 ]
 
 # users.user
