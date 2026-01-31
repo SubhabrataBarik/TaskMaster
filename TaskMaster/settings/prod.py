@@ -8,7 +8,11 @@ DEBUG = False
 default=[".onrender.com"]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
-    "https://taskmaster.vercel.app",
+    "https://task-master-umber-beta.vercel.app",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://task-master-umber-beta.vercel.app",
 ]
 
 ALLOWED_HOSTS = [".onrender.com",]
