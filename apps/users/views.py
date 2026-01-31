@@ -1,3 +1,4 @@
+# Users/views.py
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -98,9 +99,10 @@ class GoogleLoginView(APIView):
 
         # 2. Verify the token with Google directly
         google_response = requests.get(
-            'https://www.googleapis.com/oauth2/v3/userinfo',
-            params={'access_token': google_access_token}
+            "https://oauth2.googleapis.com/tokeninfo",
+            params={"id_token": google_access_token}
         )
+
 
         if not google_response.ok:
             return Response({'detail': 'Invalid Google token'}, status=status.HTTP_401_UNAUTHORIZED)

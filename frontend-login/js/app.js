@@ -183,10 +183,48 @@ const app = {
     const googleBtn = document.getElementById("googleBtn");
 
     if (googleBtn) {
-        googleBtn.addEventListener("click", () => {
-            window.location.href =
-                "https://taskmaster-e0oy.onrender.com/accounts/google/login/?process=login";
+        google.accounts.id.initialize({
+            client_id: CONFIG.GOOGLE_CLIENT_ID,
+            callback: async (response) => {
+                try {
+                    const res = await fetch(
+                        `${CONFIG.API_BASE_URL}/auth/google/`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                access_token: response.credential,
+                            }),
+                        }
+                    );
+    
+                    const data = await res.json();
+    
+                    if (!res.ok) {
+                        app.showAlert("alertPlaceholder", "Google login failed");
+                        return;
+                    }
+    
+                    app.setTokens(data.access, data.refresh);
+                    window.location.href = "me.html";
+                } catch (err) {
+                    app.showAlert("alertPlaceholder", "Google server error");
+                }
+            },
         });
+    
+        // IMPORTANT PART
+        google.accounts.id.renderButton(
+            googleBtn,
+            {
+                theme: "outline",
+                size: "large",
+                text: "continue_with",
+                width: "100%",
+            }
+        );
     }
 
     // Login Form

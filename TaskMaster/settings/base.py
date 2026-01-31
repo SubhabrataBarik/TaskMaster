@@ -1,3 +1,4 @@
+# base.py
 """
 Django settings for TaskMaster project.
 
@@ -18,8 +19,7 @@ import environ
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 env = environ.Env(DEBUG=(bool, False))
-if os.path.exists(BASE_DIR / ".env"):
-    env.read_env(BASE_DIR / ".env")
+env.read_env(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
