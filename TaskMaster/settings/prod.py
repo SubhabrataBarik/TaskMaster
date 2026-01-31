@@ -20,6 +20,8 @@ DATABASES = {
     "default": env.db("DATABASE_URL")
     }
 
+LOGIN_REDIRECT_URL = "https://task-master-umber-beta.vercel.app/"
+LOGOUT_REDIRECT_URL = "https://task-master-umber-beta.vercel.app/"
 
 # Security settings
 SESSION_COOKIE_SECURE = True

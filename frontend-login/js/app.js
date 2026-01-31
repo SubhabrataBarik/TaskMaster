@@ -173,63 +173,22 @@ const app = {
         app.clearTokens();
         window.location.href = 'index.html';
     },
-  
-  // 6. Google Login (Send Google Token to Backend)
-    googleLogin: async (googleAccessToken) => {
-        app.toggleLoading('googleBtn', 'loginSpinner', true); // Reuse spinner or add new one
-        try {
-            // We send the Google Token to YOUR backend
-            const response = await fetch(`${CONFIG.API_BASE_URL}/auth/google/`, { 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ access_token: googleAccessToken })
-            });
-            
-            const data = await response.json();
-  
-            if (response.ok) {
-                // Same success logic as normal login
-                app.setTokens(data.access, data.refresh);
-                window.location.href = 'me.html';
-            } else {
-                app.showAlert('alertPlaceholder', 'Google Login failed: ' + (data.detail || 'Unknown error'));
-            }
-        } catch (error) {
-            app.showAlert('alertPlaceholder', 'Server unavailable for Google Login.');
-        } finally {
-            app.toggleLoading('googleBtn', 'loginSpinner', false);
-        }
-    },
-  
-    // --- Google Initialization ---
-    initGoogleAuth: () => {
-        if (!window.google || !CONFIG.GOOGLE_CLIENT_ID) return;
-  
-        // Initialize the Google Client
-        const client = google.accounts.oauth2.initTokenClient({
-            client_id: CONFIG.GOOGLE_CLIENT_ID,
-            scope: 'email profile',
-            callback: (tokenResponse) => {
-                // This runs when the user successfully logs in with Google
-                if (tokenResponse && tokenResponse.access_token) {
-                    console.log("Got Google Token:", tokenResponse.access_token);
-                    // Now send it to Django
-                    app.googleLogin(tokenResponse.access_token);
-                }
-            },
-        });
-  
-        // Attach click handler to your existing button
-        const googleBtn = document.getElementById('googleBtn');
-        if (googleBtn) {
-            googleBtn.onclick = () => client.requestAccessToken();
-        }
-    }
   };
   
   
   // --- DOM Event Listeners ---
   document.addEventListener('DOMContentLoaded', () => {
+
+    // Google Login (Backend OAuth)
+    const googleBtn = document.getElementById("googleBtn");
+
+    if (googleBtn) {
+        googleBtn.addEventListener("click", () => {
+            window.location.href =
+                "https://taskmaster-e0oy.onrender.com/accounts/google/login/?process=login";
+        });
+    }
+
     // Login Form
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -257,9 +216,6 @@ const app = {
             app.register({ email, username, password, password2 });
         });
     }
-  
-    // Initialize Google Auth
-    app.initGoogleAuth();
   });
   
   // Expose app to window for html inline script
