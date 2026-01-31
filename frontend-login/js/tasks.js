@@ -10,15 +10,6 @@ const taskApp = {
         timeline: null,
     },
 
-    // --- 1. CONFIG & HEADERS ---
-    getHeaders: () => {
-        const token = localStorage.getItem('access_token');
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        };
-    },
-
     // --- 2. CORE TASK API CALLS ---
     
     loadTasks: async () => {
@@ -40,16 +31,9 @@ const taskApp = {
         if (searchVal) query.append('search', searchVal);
     
         try {
-            const response = await fetch(
-                `${CONFIG.API_BASE_URL}/tasks/?${query.toString()}`,
-                { headers: taskApp.getHeaders() }
-            );
-    
-            if (response.status === 401) {
-                localStorage.clear();
-                window.location.href = 'index.html';
-                return;
-            }
+            const response = await app.authFetch(
+                `${CONFIG.API_BASE_URL}/tasks/?${query.toString()}`
+              );              
     
             const data = await response.json();
             const tasks = Array.isArray(data) ? data : (data.results || []);
@@ -75,11 +59,10 @@ const taskApp = {
             due_time: document.getElementById('taskDueTime').value || null
         };
 
-        const res = await fetch(url, {
-            method: method,
-            headers: taskApp.getHeaders(),
+        const res = await app.authFetch(url, {
+            method,
             body: JSON.stringify(payload)
-        });
+          });          
 
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
@@ -91,10 +74,9 @@ const taskApp = {
         const id = forceId || document.getElementById('taskId').value;
         if (!confirm("Permanently delete this task?")) return;
 
-        await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`, {
-            method: 'DELETE',
-            headers: taskApp.getHeaders()
-        });
+        await app.authFetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`, {
+            method: 'DELETE'
+          });          
         
         const modalInstance = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
         if (modalInstance) modalInstance.hide();
@@ -102,19 +84,18 @@ const taskApp = {
     },
 
     toggleComplete: async (id) => {
-        await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/complete/`, {
-            method: 'POST',
-            headers: taskApp.getHeaders()
-        });
+        await app.authFetch(`${CONFIG.API_BASE_URL}/tasks/${id}/complete/`, {
+            method: 'POST'
+          });          
         taskApp.loadTasks();
     },
 
     // --- 3. SUBTASK API CALLS ---
 
     loadSubtasks: async (taskId) => {
-        const res = await fetch(`${CONFIG.API_BASE_URL}/tasks/${taskId}/subtasks/`, {
-            headers: taskApp.getHeaders()
-        });
+        const res = await app.authFetch(
+            `${CONFIG.API_BASE_URL}/tasks/${taskId}/subtasks/`
+          );          
         const subtasks = await res.json();
         taskApp.renderSubtasks(subtasks);
     },
@@ -126,11 +107,10 @@ const taskApp = {
 
         if (!title) return;
 
-        await fetch(`${CONFIG.API_BASE_URL}/tasks/${taskId}/subtasks/`, {
+        await app.authFetch(`${CONFIG.API_BASE_URL}/tasks/${taskId}/subtasks/`, {
             method: 'POST',
-            headers: taskApp.getHeaders(),
             body: JSON.stringify({ title, estimated_hours: hours || 0 })
-        });
+          });
 
         document.getElementById('newSubtaskTitle').value = '';
         document.getElementById('newSubtaskHours').value = '';
@@ -139,29 +119,28 @@ const taskApp = {
 
     toggleSubtask: async (subId, currentStatus) => {
         const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
-        await fetch(`${CONFIG.API_BASE_URL}/subtasks/${subId}/`, {
+        await app.authFetch(`${CONFIG.API_BASE_URL}/subtasks/${subId}/`, {
             method: 'PATCH',
-            headers: taskApp.getHeaders(),
             body: JSON.stringify({ status: newStatus })
         });
+
         taskApp.loadSubtasks(document.getElementById('taskId').value);
     },
 
     deleteSubtask: async (subId) => {
-        await fetch(`${CONFIG.API_BASE_URL}/subtasks/${subId}/`, {
-            method: 'DELETE',
-            headers: taskApp.getHeaders()
-        });
+        await app.authFetch(`${CONFIG.API_BASE_URL}/subtasks/${subId}/`, {
+            method: 'DELETE'
+          });
+          
         taskApp.loadSubtasks(document.getElementById('taskId').value);
     },
 
     reorderSubtasks: async (orderedData) => {
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/subtasks/reorder/`, {
+            const response = await app.authFetch(`${CONFIG.API_BASE_URL}/subtasks/reorder/`, {
                 method: 'POST',
-                headers: taskApp.getHeaders(),
                 body: JSON.stringify(orderedData)
-            });
+              });              
 
             if (response.ok) {
                 taskApp.loadSubtasks(document.getElementById('taskId').value);
@@ -297,7 +276,7 @@ const taskApp = {
     },
 
     editTask: async (id) => {
-        const res = await fetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`, { headers: taskApp.getHeaders() });
+        const res = await app.authFetch(`${CONFIG.API_BASE_URL}/tasks/${id}/`);
         const task = await res.json();
 
         document.getElementById('taskId').value = task.id;
@@ -380,10 +359,10 @@ document.addEventListener('DOMContentLoaded', () => {
         taskApp.loadTasks();
     });
 
-    if (!localStorage.getItem('access_token')) {
+    if (!localStorage.getItem('refresh_token')) {
         window.location.href = 'index.html';
         return;
-    }
+    }    
 
     taskApp.loadTasks();
 
