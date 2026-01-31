@@ -1,69 +1,234 @@
-/* --- 1. Layout & Core Elements --- */
+/* ======================================================
+   TASKMASTER — AUTH UI (SaaS STYLE)
+   ====================================================== */
+
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 html, body {
   height: 100%;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: #0b0f1a;
 }
 
-.card {
-  border-radius: 12px;
+/* ======================================================
+   MAIN LAYOUT
+   ====================================================== */
+
+.auth-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
 }
 
-/* Alert styling space */
-#alertPlaceholder { 
-  margin-top: -0.5rem; 
-  margin-bottom: 0.75rem; 
+/* LEFT PANEL */
+.auth-left {
+  width: 42%;
+  background: #0b0f1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
 }
 
-/* --- 2. Subtask Drag & Drop UI --- */
-
-/* The item currently being moved */
-.subtask-item.dragging {
-  opacity: 0.4;
-  border: 2px dashed #0d6efd !important;
-  background-color: #f0f7ff !important;
-  transform: scale(0.98); /* Subtle "lifted" effect */
+/* RIGHT PANEL */
+.auth-right {
+  width: 58%;
+  background: linear-gradient(135deg, #1f6bff, #00b3ff);
+  padding: 80px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-/* The item you are hovering over while dragging */
-.subtask-item.drag-over {
-  border-top: 3px solid #0d6efd !important;
-  background-color: #f8f9fa;
-  transition: border-top 0.1s ease-in-out;
+.auth-right h1 {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 
-/* The grip handle icon */
-.bi-grip-vertical {
-  cursor: grab;
-  font-size: 1.1rem;
+.auth-right p {
+  font-size: 18px;
+  opacity: 0.9;
+  margin-bottom: 40px;
 }
 
-.bi-grip-vertical:active {
-  cursor: grabbing;
+.auth-right .preview {
+  max-width: 100%;
+  border-radius: 14px;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.35);
 }
 
-/* --- 3. Responsive Tweaks --- */
-@media (max-width: 420px) {
-  .card-body { 
-      padding: 1.25rem; 
+/* ======================================================
+   LOGIN BOX
+   ====================================================== */
+
+.auth-box {
+  width: 100%;
+  max-width: 380px;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo img {
+  height: 46px;
+  margin-bottom: 10px;
+}
+
+.logo h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.logo p {
+  font-size: 14px;
+  color: #9aa4bf;
+}
+
+/* ======================================================
+   OAUTH
+   ====================================================== */
+
+.oauth-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #2a3352;
+  background: #11172a;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.oauth-btn i {
+  margin-right: 8px;
+}
+
+.oauth-btn:hover {
+  background: #1a2240;
+}
+
+/* ======================================================
+   DIVIDER
+   ====================================================== */
+
+.divider {
+  text-align: center;
+  color: #7d86a5;
+  font-size: 13px;
+  margin: 22px 0;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #2a3352;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+/* ======================================================
+   FORM
+   ====================================================== */
+
+.field {
+  margin-bottom: 18px;
+}
+
+.field label {
+  font-size: 13px;
+  color: #aab3d1;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.field label.between {
+  display: flex;
+  justify-content: space-between;
+}
+
+.field input {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 10px;
+  border: 1px solid #2a3352;
+  background: #11172a;
+  color: white;
+  font-size: 15px;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: #3b82f6;
+}
+
+/* ======================================================
+   BUTTON
+   ====================================================== */
+
+.login-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background: #1d4ed8;
+}
+
+/* ======================================================
+   FOOTER
+   ====================================================== */
+
+.signup {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #9aa4bf;
+}
+
+.signup a {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+/* ======================================================
+   MOBILE
+   ====================================================== */
+
+@media (max-width: 900px) {
+  .auth-container {
+    flex-direction: column;
   }
-}
 
-.nav-link {
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  margin-bottom: 5px;
-}
+  .auth-left,
+  .auth-right {
+    width: 100%;
+  }
 
-.nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #fff !important;
-}
-
-.nav-link.active {
-  background-color: #0d6efd !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-}
-
-.text-white-50 {
-  font-weight: 500;
+  .auth-right {
+    display: none;
+  }
 }

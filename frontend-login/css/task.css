@@ -1,0 +1,324 @@
+/* ======================================================
+   TASKMASTER AI — DARK MODE DASHBOARD
+   Bootstrap-themed (DO NOT remove bootstrap)
+   ====================================================== */
+
+   :root {
+    --bg-main: #0b0f1a;
+    --bg-panel: #111827;
+    --bg-elevated: #1a1f2e;
+  
+    --border: #1f2937;
+  
+    --text-main: #e5e7eb;
+    --text-muted: #9ca3af;
+  
+    --primary: #3b82f6;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #22c55e;
+  }
+  
+  /* ======================================================
+     BASE
+     ====================================================== */
+  
+  body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main);
+  }
+  
+  /* ======================================================
+     NAVBAR
+     ====================================================== */
+  
+  .navbar {
+    background: var(--bg-panel) !important;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .navbar-brand,
+  .navbar span,
+  .navbar .nav-link {
+    color: var(--text-main) !important;
+  }
+  
+  .navbar .dropdown-menu {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+  }
+  
+  .dropdown-item {
+    color: var(--text-main);
+  }
+  
+  .dropdown-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-main) !important;
+  }
+  
+  /* ======================================================
+     SIDEBAR
+     ====================================================== */
+  
+  .sidebar {
+    background: var(--bg-panel) !important;
+    border-right: 1px solid var(--border);
+  }
+  
+  .sidebar .list-group-item {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .sidebar .list-group-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-main) !important;
+  }
+  
+  .sidebar .list-group-item.active {
+    background: var(--primary);
+    color: white !important;
+  }
+  
+  .sidebar-heading {
+    color: var(--text-muted);
+  }
+  
+  /* ======================================================
+     FILTERS & TEXT VISIBILITY
+     ====================================================== */
+  
+  .form-check-label {
+    color: var(--text-main);
+  }
+  
+  .form-check-input {
+    background-color: var(--bg-elevated);
+    border-color: var(--border);
+  }
+  
+  .form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+  
+  /* Applied filter text */
+  #activeFilters,
+  #activeFiltersText {
+    color: var(--text-muted) !important;
+    font-weight: 500;
+  }
+  
+  /* ======================================================
+     BUTTONS
+     ====================================================== */
+  
+  .btn-primary {
+    background: var(--primary);
+    border: none;
+  }
+  
+  .btn-outline-secondary {
+    color: var(--text-muted);
+    border-color: var(--border);
+  }
+  
+  .btn-outline-secondary:hover {
+    background: var(--bg-elevated);
+    color: white;
+  }
+  
+  /* ======================================================
+     TASK CARDS
+     ====================================================== */
+  
+  .task-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+  
+  .task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+  }
+  
+  .border-high {
+    border-left: 5px solid var(--danger) !important;
+  }
+  
+  .border-medium {
+    border-left: 5px solid var(--warning) !important;
+  }
+  
+  .border-low {
+    border-left: 5px solid var(--success) !important;
+  }
+  
+  .task-card h6 {
+    color: var(--text-main);
+  }
+  
+  .task-card p {
+    color: var(--text-muted);
+  }
+  
+  /* ======================================================
+     BADGES (fix white/black issue)
+     ====================================================== */
+  
+  .badge,
+  .badge.bg-light,
+  .badge.bg-info-subtle {
+    background-color: #1f2937 !important;
+    color: #93c5fd !important;
+    border: 1px solid #334155 !important;
+  }
+  
+  /* ======================================================
+     MODALS
+     ====================================================== */
+  
+  .modal-content {
+    background: var(--bg-panel);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+  }
+  
+  .modal-header,
+  .modal-footer {
+    background: var(--bg-panel);
+    border-color: var(--border);
+  }
+  
+  .modal input,
+  .modal textarea,
+  .modal select {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: white;
+  }
+  
+  .modal input::placeholder,
+  .modal textarea::placeholder {
+    color: var(--text-muted);
+  }
+  
+  .modal input:focus,
+  .modal textarea:focus,
+  .modal select:focus {
+    border-color: var(--primary);
+    box-shadow: none;
+  }
+  
+  /* ======================================================
+     SUBTASKS (white box fix)
+     ====================================================== */
+  
+  .subtask-item {
+    background-color: var(--bg-elevated) !important;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+  }
+  
+  .subtask-item.dragging {
+    opacity: 0.4;
+    border: 2px dashed var(--primary);
+  }
+  
+  .subtask-item.drag-over {
+    border-top: 3px solid var(--primary);
+  }
+  
+  /* ======================================================
+     INPUT GROUPS (add subtask row fix)
+     ====================================================== */
+  
+  .input-group,
+  .input-group input,
+  .input-group button {
+    background-color: var(--bg-elevated) !important;
+    border-color: var(--border) !important;
+    color: var(--text-main) !important;
+  }
+  
+  .input-group input::placeholder {
+    color: var(--text-muted);
+  }
+  
+  /* ======================================================
+     SEARCH
+     ====================================================== */
+  
+  .input-group-text,
+  .form-control {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: white;
+  }
+  
+  .form-control::placeholder {
+    color: var(--text-muted);
+  }
+  
+  .form-control:focus {
+    background: var(--bg-elevated);
+    color: white;
+  }
+  
+  /* ======================================================
+     OFFCANVAS (mobile)
+     ====================================================== */
+  
+  .offcanvas {
+    background: var(--bg-panel);
+    color: var(--text-main);
+  }
+  
+  .offcanvas .list-group-item {
+    background: transparent;
+    color: var(--text-muted);
+  }
+  
+  .offcanvas .list-group-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-main);
+  }
+  
+  .offcanvas .list-group-item.active {
+    background: var(--primary);
+    color: white;
+  }
+  
+  /* ======================================================
+     GLOBAL HOVER SAFETY
+     ====================================================== */
+  
+  a:hover,
+  .list-group-item:hover,
+  .dropdown-item:hover {
+    color: var(--text-main) !important;
+  }
+  
+  /* ======================================================
+     SCROLLBARS
+     ====================================================== */
+  
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #2a3145;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  

@@ -1,0 +1,233 @@
+/* ===============================
+   AUTH SYSTEM — TaskMaster AI
+   Scope: login / signup only
+   =============================== */
+
+   :root {
+    --bg-dark: #0b0f1a;
+    --bg-panel: #111827;
+    --bg-input: #1a1f2e;
+  
+    --text-main: #ffffff;
+    --text-muted: #9ca3af;
+  
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+  
+    --border: #2a2f3f;
+  }
+  
+  /* ---------- Reset ---------- */
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    height: 100%;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-main);
+  }
+  
+  /* ---------- Layout ---------- */
+  
+  .auth-container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  /* LEFT PANEL */
+  .auth-left {
+    width: 40%;
+    min-width: 420px;
+    background: var(--bg-panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* RIGHT PANEL */
+  .auth-right {
+    flex: 1;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    padding: 60px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* ---------- Auth Box ---------- */
+  
+  .auth-box {
+    width: 100%;
+    max-width: 380px;
+  }
+  
+  /* ---------- Logo ---------- */
+  
+  .logo {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  
+  .logo img {
+    height: 46px;
+    margin-bottom: 10px;
+  }
+  
+  .logo h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  
+  .logo p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  
+  /* ---------- OAuth ---------- */
+  
+  .oauth-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  
+  .oauth-btn:hover {
+    background: #f3f4f6;
+  }
+  
+  /* ---------- Divider ---------- */
+  
+  .divider {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 18px 0;
+    position: relative;
+  }
+  
+  .divider::before,
+  .divider::after {
+    content: "";
+    height: 1px;
+    width: 40%;
+    background: var(--border);
+    position: absolute;
+    top: 50%;
+  }
+  
+  .divider::before { left: 0; }
+  .divider::after  { right: 0; }
+  
+  /* ---------- Fields ---------- */
+  
+  .field {
+    margin-bottom: 16px;
+  }
+  
+  .field label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+  }
+  
+  .field label.between {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .field input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: white;
+    outline: none;
+  }
+  
+  .field input:focus {
+    border-color: var(--primary);
+  }
+  
+  /* ---------- Login Button ---------- */
+  
+  .login-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 13px;
+    border-radius: 8px;
+    background: var(--primary);
+    border: none;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .login-btn:hover {
+    background: var(--primary-hover);
+  }
+  
+  /* ---------- Footer ---------- */
+  
+  .signup {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  
+  .signup a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  
+  /* ---------- Right Panel ---------- */
+  
+  .auth-right h1 {
+    font-size: 2.4rem;
+    max-width: 520px;
+    line-height: 1.2;
+  }
+  
+  .auth-right p {
+    margin-top: 12px;
+    font-size: 1.1rem;
+    max-width: 480px;
+    opacity: 0.9;
+  }
+  
+  .auth-right img.preview {
+    margin-top: 50px;
+    max-width: 85%;
+    border-radius: 14px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  }
+  
+  /* ---------- Responsive ---------- */
+  
+  @media (max-width: 900px) {
+    .auth-right {
+      display: none;
+    }
+  
+    .auth-left {
+      width: 100%;
+    }
+  }
+  
