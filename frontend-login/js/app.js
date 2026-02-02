@@ -175,68 +175,72 @@ const app = {
     },
   };
   
+// ---------- Google Login (SAFE INIT) ----------
+const initGoogleLogin = () => {
+    if (typeof google === "undefined") {
+      console.warn("Google SDK not loaded yet, retrying...");
+      setTimeout(initGoogleLogin, 300);
+      return;
+    }
+  
+    const googleBtn = document.getElementById("googleBtn");
+    if (!googleBtn) return;
+  
+    google.accounts.id.initialize({
+      client_id: CONFIG.GOOGLE_CLIENT_ID,
+      callback: async (response) => {
+        try {
+          const res = await fetch(
+            `${CONFIG.API_BASE_URL}/auth/google/`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                access_token: response.credential,
+              }),
+            }
+          );
+  
+          const data = await res.json();
+  
+          if (!res.ok) {
+            app.showAlert("alertPlaceholder", "Google login failed");
+            return;
+          }
+  
+          app.setTokens(data.access, data.refresh);
+          window.location.href = "me.html";
+        } catch (err) {
+          app.showAlert("alertPlaceholder", "Google server error");
+        }
+      },
+    });
+  
+    google.accounts.id.renderButton(googleBtn, {
+      theme: "outline",
+      size: "large",
+      text: "continue_with",
+      width: "100%",
+    });
+  };
   
   // --- DOM Event Listeners ---
   document.addEventListener('DOMContentLoaded', () => {
-
-    // Google Login (Backend OAuth)
-    const googleBtn = document.getElementById("googleBtn");
-
-    if (googleBtn) {
-        google.accounts.id.initialize({
-            client_id: CONFIG.GOOGLE_CLIENT_ID,
-            callback: async (response) => {
-                try {
-                    const res = await fetch(
-                        `${CONFIG.API_BASE_URL}/auth/google/`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                access_token: response.credential,
-                            }),
-                        }
-                    );
-    
-                    const data = await res.json();
-    
-                    if (!res.ok) {
-                        app.showAlert("alertPlaceholder", "Google login failed");
-                        return;
-                    }
-    
-                    app.setTokens(data.access, data.refresh);
-                    window.location.href = "me.html";
-                } catch (err) {
-                    app.showAlert("alertPlaceholder", "Google server error");
-                }
-            },
-        });
-    
-        // IMPORTANT PART
-        google.accounts.id.renderButton(
-            googleBtn,
-            {
-                theme: "outline",
-                size: "large",
-                text: "continue_with",
-                width: "100%",
-            }
-        );
-    }
+    initGoogleLogin();
 
     // Login Form
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            app.login(email, password);
-        });
-    }
+    document.getElementById("loginBtn")?.addEventListener("click", () => {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+      
+        if (!email || !password) {
+          app.showAlert("alertPlaceholder", "Email and password required");
+          return;
+        }
+      
+        app.login(email, password);
+      });
+          
   
     // Signup Form
     const signupBtn = document.getElementById('signupBtn');
