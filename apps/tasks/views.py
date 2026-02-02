@@ -123,6 +123,17 @@ class SubTaskViewSet(viewsets.ModelViewSet):
 
         serializer.save(parent_task=task)
 
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        new_status = self.request.data.get("status")
+    
+        if new_status == "completed" and instance.completed_at is None:
+            serializer.save(completed_at=timezone.now())
+        elif new_status == "pending":
+            serializer.save(completed_at=None)
+        else:
+            serializer.save()
+
     @action(detail=False, methods=["post"])
     def reorder(self, request):
         """
