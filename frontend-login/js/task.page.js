@@ -220,6 +220,11 @@ const taskApp = {
               ${st.title}
             </span>
             <span class="badge me-2">${Number(st.estimated_hours || 0).toFixed(1)}h</span>
+            ${st.completed_at 
+              ? `<span class="small text-muted ms-2">✔ ${new Date(st.completed_at).toLocaleString()}</span>` 
+              : ""
+            }
+
             <button class="btn btn-sm text-danger p-0"
               onclick="taskApp.deleteSubtask('${st.id}')">
               <i class="bi bi-trash"></i>

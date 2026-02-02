@@ -23,7 +23,11 @@ class SubTaskSerializer(serializers.ModelSerializer):
             "status",
             "order_index",
             "completed_at",
+            "estimated_hours",
+            "created_at",
+            "updated_at",
         ]
+        read_only_fields = ["created_at", "updated_at", "completed_at"]
 
 # TaskSerializer (read)
 class TaskSerializer(serializers.ModelSerializer):
