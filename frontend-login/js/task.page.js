@@ -55,43 +55,42 @@ const taskApp = {
           </div>`;
       },
       
-      loadTasks: async () => {
-        const query = {};
-      
-        // pagination
-        query.page = taskApp.pageState.currentPage;
-      
-        // filters
-        if (taskApp.filterState.status.length) {
-          query.status__in = taskApp.filterState.status.join(',');
-        }
-      
-        if (taskApp.filterState.priority.length) {
-          query.priority__in = taskApp.filterState.priority.join(',');
-        }
-      
-        if (taskApp.filterState.timeline) {
-          query.timeline = taskApp.filterState.timeline;
-        }
-      
-        const searchVal = document.getElementById('searchInput')?.value;
-        if (searchVal) query.search = searchVal;
-      
-        try {
-          const data = await TaskService.fetchTasks(query);
-      
-          // pagination metadata
-          taskApp.pageState.totalCount = data.count;
-          taskApp.pageState.hasNext = !!data.next;
-          taskApp.pageState.hasPrevious = !!data.previous;
-      
-          taskApp.renderDashboard(data.results);
-          taskApp.renderPagination();
-      
-        } catch (err) {
-          console.error("Load tasks failed:", err);
-        }
-      },      
+    loadTasks: async () => {
+      const query = {
+        page: taskApp.pageState.currentPage,
+      };
+    
+      // 1️⃣ SEARCH FROM NAVBAR
+      const searchVal = document.getElementById('searchInput')?.value;
+      if (searchVal) query.search = searchVal;
+    
+      // 2️⃣ SIDEBAR FILTERS (existing)
+      if (taskApp.filterState.status.length) {
+        query.status__in = taskApp.filterState.status.join(',');
+      }
+    
+      if (taskApp.filterState.priority.length) {
+        query.priority__in = taskApp.filterState.priority.join(',');
+      }
+    
+      if (taskApp.filterState.timeline) {
+        query.timeline = taskApp.filterState.timeline;
+      }
+    
+      try {
+        const data = await TaskService.fetchTasks(query);
+    
+        taskApp.pageState.totalCount = data.count;
+        taskApp.pageState.hasNext = !!data.next;
+        taskApp.pageState.hasPrevious = !!data.previous;
+    
+        taskApp.renderDashboard(data.results);
+        taskApp.renderPagination();
+    
+      } catch (err) {
+        console.error("Load tasks failed:", err);
+      }
+    },      
     
     saveTask: async () => {
         const id = document.getElementById("taskId").value;
@@ -410,40 +409,58 @@ const taskApp = {
     },
   };
   
-  // -------------------------
-  // INIT
-  // -------------------------
-  document.addEventListener("DOMContentLoaded", () => {
-  
+// -------------------------
+// INIT
+// -------------------------
+document.addEventListener("DOMContentLoaded", () => {
+
     if (!localStorage.getItem("access_token")) {
       window.location.href = "index.html";
       return;
     }
   
+    // Initial load (page 1)
+    taskApp.pageState.currentPage = 1;
     taskApp.loadTasks();
   
+    // Apply filters (SIDEBAR button)
     document.getElementById("applyFiltersBtn")
       ?.addEventListener("click", () => {
         taskApp.collectFilters();
+        taskApp.pageState.currentPage = 1;   // IMPORTANT
         taskApp.loadTasks();
       });
   
+    // Search (DEBOUNCED + resets pagination)
     let timer;
     document.getElementById("searchInput")
       ?.addEventListener("input", () => {
         clearTimeout(timer);
-        timer = setTimeout(taskApp.loadTasks, 500);
+        timer = setTimeout(() => {
+          taskApp.pageState.currentPage = 1; // RESET PAGE ON SEARCH
+          taskApp.loadTasks();
+        }, 500);
       });
   
+    // Clear filters (also reset pagination)
     document.getElementById("clearFiltersBtn")
       ?.addEventListener("click", () => {
-        taskApp.filterState = { status: [], priority: [], timeline: null };
+        taskApp.filterState = {
+          status: [],
+          priority: [],
+          timeline: null,
+        };
+  
         document.querySelectorAll(".filter-status, .filter-priority")
           .forEach(el => el.checked = false);
+  
         taskApp.updateActiveFiltersUI();
+  
+        taskApp.pageState.currentPage = 1;   // IMPORTANT
         taskApp.loadTasks();
       });
-  });
+  
+  });  
   
   window.taskApp = taskApp;
   
