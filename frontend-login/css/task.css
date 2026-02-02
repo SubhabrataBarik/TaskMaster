@@ -12,7 +12,8 @@
   
     --text-main: #e5e7eb;
     --text-muted: #9ca3af;
-  
+    --text-soft: #cbd5f5;
+    
     --primary: #3b82f6;
     --danger: #ef4444;
     --warning: #f59e0b;
@@ -328,13 +329,6 @@
    Fix modal whites + improve text visibility
    ====================================================== */
 
-/* ---------- Stronger text hierarchy ---------- */
-
-:root {
-  --text-soft: #cbd5f5;     /* readable secondary */
-  --text-muted: #94a3b8;   /* keep muted for labels only */
-}
-
 /* Upgrade common text usage */
 
 p,
@@ -409,3 +403,11 @@ label,
 .dropdown-item:hover {
   color: var(--text-main) !important;
 }
+
+/* ======================================================
+   NATIVE DATE / TIME INPUT — GUARANTEED VISIBILITY FIX
+   ====================================================== */
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {filter: invert(1);}
+
