@@ -10,6 +10,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('ai/breakdown-task', views.BreakdownTaskView.as_view(), name='breakdown'),
-    path('ai/suggest-priority', views.SuggestPriorityView.as_view(), name ='Suggest'),
+    # path('ai/breakdown-task', views.BreakdownTaskView.as_view(), name='breakdown'),
+    # path('ai/suggest-priority', views.SuggestPriorityView.as_view(), name ='Suggest'),
 ]
