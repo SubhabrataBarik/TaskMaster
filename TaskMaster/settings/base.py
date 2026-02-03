@@ -30,7 +30,13 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG")
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+# ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+ALLOWED_HOSTS = [
+    ".onrender.com",
+    "task-master-umber-beta.vercel.app",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
@@ -89,9 +95,7 @@ ASGI_APPLICATION = "TaskMaster.asgi.application"
 # psql -U taskuser -d taskmaster_db
 
 DATABASES = {}
-
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 AUTH_PASSWORD_VALIDATORS = [
     {

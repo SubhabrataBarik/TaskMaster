@@ -32,8 +32,16 @@ class TaskViewSet(viewsets.ModelViewSet):
         return (
             Task.objects
             .filter(user=self.request.user, is_active=True)
-            .prefetch_related("subtasks", "tags")
+            .prefetch_related(
+                "subtasks",
+                "tags"
+            )
+            .only(
+                "id", "title", "description", "priority",
+                "status", "due_date", "created_at"
+            )
         )
+
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
