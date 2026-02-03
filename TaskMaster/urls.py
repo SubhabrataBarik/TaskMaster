@@ -12,6 +12,7 @@ urlpatterns = [
     # apps
     path("api/auth/", include("apps.users.urls")),
     path("api/", include("apps.tasks.urls")),
+    path("api/", include("apps.ai.urls"))
 ]
 
 
