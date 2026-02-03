@@ -16,9 +16,23 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 ALLOWED_HOSTS = [".onrender.com",]
+# DATABASES = {
+#     "default": env.db("DATABASE_URL")
+#     }
 DATABASES = {
-    "default": env.db("DATABASE_URL")
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("PGDATABASE"),
+        "USER": env("PGUSER"),
+        "PASSWORD": env("PGPASSWORD"),
+        "HOST": env("PGHOST"),
+        "PORT": env("PGPORT", default="5432"),
+        "CONN_MAX_AGE": 0,   # CRITICAL for Render Free tier
+        "OPTIONS": {
+            "sslmode": "require",
+        },
     }
+}
 
 LOGIN_REDIRECT_URL = "https://task-master-umber-beta.vercel.app/"
 LOGOUT_REDIRECT_URL = "https://task-master-umber-beta.vercel.app/"
