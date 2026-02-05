@@ -1,37 +1,62 @@
-# Create class BreakdownTaskRequestSerializer(serializers.Serializer):
+from rest_framework import serializers
+from datetime import date
+from django.db import transaction
+from .models import InferenceLog, ModelVersion
+from apps.tasks.models import Task
 
-# Fields:
-# - title (CharField, required=True, max_length=255)
-# - description (CharField, required=False, allow_blank=True)
+class BreakdownTaskRequestSerializer(serializers.Serializer):
 
-# Validation rules:
-# - title must not be empty
-# - strip whitespace
-# - optionally: enforce minimum length (e.g., 5 characters)
+    title = serializers.CharField(
+        max_length=255,
+        required=True,
+        trim_whitespace=True
+    )
 
-# Create class SubtaskSuggestionSerializer(serializers.Serializer):
-# Fields:
-# - title (CharField)
-# - estimated_time (CharField)  # e.g., "2h"
+    description =serializers.CharField(
+        required=False,
+        allow_blank=True
+    )
 
-# Create class BreakdownTaskResponseSerializer(serializers.Serializer):
-# Fields:
-# - subtasks (ListField of SubtaskSuggestionSerializer)
-# - reasoning (CharField)
+    def validate_title(self, value):
+        value = value.strip()
 
-# Create class SuggestPriorityRequestSerializer(serializers.Serializer):
+        if not value:
+            raise serializers.ValidationError("Title cannot be empty or whitespace.")
+        if len(value) < 5:
+            raise serializers.ValidationError("Title must be at least 5 characters long.")
+        
+        return value
 
-# Fields:
-# - title (CharField, required=True)
-# - description (CharField, required=False)
-# - due_date (DateField, required=False)
+class SubtaskSuggestionSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    estimated_time = serializers.CharField()
 
-# Validation:
-# - Ensure due_date is not in the past (optional but good)
+class BreakdownTaskResponseSerializer(serializers.Serializer):
+    subtasks = SubtaskSuggestionSerializer(many=True)
+    reasoning = serializers.CharField()
 
-# Create class SuggestPriorityResponseSerializer(serializers.Serializer):
+class SuggestPriorityRequestSerializer(serializers.Serializer):
+    title = serializers.CharField(
+        max_length=255,
+        required=True,
+        trim_whitespace=True
+    )
 
-# Fields:
-# - suggested_priority (ChoiceField: "low", "medium", "high")
-# - confidence (FloatField between 0 and 1)
-# - reasoning (CharField)
+    description =serializers.CharField(
+        required=False,
+        allow_blank=True
+    )
+
+    due_date = serializers.DateField(required=False)
+
+    def validate_due_date(self, value):
+        if value and value< date.today():
+            raise serializers.ValidationError("due date cannot be in the past")
+        return value
+
+class SuggestPriorityResponseSerializer(serializers.Serializer):
+    suggested_priority = serializers.ChoiceField(
+        choices=["low", "medium", "high"]
+    )
+    confidence = serializers.FloatField(min_value=0, max_value=1)
+    reasoning = serializers.CharField()
