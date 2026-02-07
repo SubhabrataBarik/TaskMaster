@@ -1,4 +1,17 @@
 from django.shortcuts import render
+from .serializers import BreakdownTaskRequestSerializer, BreakdownTaskResponseSerializer, SuggestPriorityRequestSerializer, SuggestPriorityResponseSerializer
+
+# class AIViewSet(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     serializer = BreakdownTaskRequestSerializer(data=request.data)
+#     serializer.is_valid(raise_exception=True)
+
+#     result = run_priority_model(serializer.validated_data)
+#     return BreakdownTaskResponseSerializer(data)
+
+
+
 
 # Create your views here.
 # Class: AIViewSet(viewsets.ViewSet)

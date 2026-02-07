@@ -29,6 +29,7 @@ datasets==4.5.0
 # HTTP / APIs
 requests==2.32.5
 httpx==0.28.1
+dotenv 
 
 # Serialization
 orjson==3.11.5

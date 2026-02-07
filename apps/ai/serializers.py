@@ -1,8 +1,5 @@
 from rest_framework import serializers
 from datetime import date
-from django.db import transaction
-from .models import InferenceLog, ModelVersion
-from apps.tasks.models import Task
 
 class BreakdownTaskRequestSerializer(serializers.Serializer):
 
