@@ -1,11 +1,4 @@
-# Create DefaultRouter()
-# Register AIViewSet with basename="ai"
-
-# Add custom routes:
-# POST /api/ai/breakdown-task/
-# POST /api/ai/suggest-priority/
-
-# users/urls.py
+# app/ai/urls.py
 from django.urls import path
 from . import views
 

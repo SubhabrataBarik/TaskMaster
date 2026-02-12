@@ -1,3 +1,4 @@
+# app/ai/serializer.py
 from rest_framework import serializers
 from datetime import date
 import uuid
