@@ -1,23 +1,27 @@
 # Core ML stack (Python 3.13 compatible)
-numpy==2.4.1
-scipy==1.17.0
-scikit-learn==1.9.1
+# numpy==2.4.1
+# scipy==1.17.0
+# scikit-learn==1.9.1
 
 # Deep learning (Python 3.13 compatible)
-torch==2.10.0
+# torch==2.10.0
 
 # NLP / Transformers
-transformers==4.57.5
-sentence-transformers==5.2.0
-tokenizers==0.22.2
+# transformers==4.57.5
+# sentence-transformers==5.2.0
+# tokenizers==0.22.2
 
 # Vector DB / similarity
-faiss-cpu==1.13.2
+# faiss-cpu==1.13.2
 
 # Data utilities
-pandas==2.3.3
-pyarrow==22.0.0
-datasets==4.5.0
+# pandas==2.3.3
+# pyarrow==22.0.0
+# datasets==4.5.0
+
+langchain==1.2.8
+langchain-openai==1.1.7
+openai==2.16.0
 
 # HTTP / APIs
 requests==2.32.5
