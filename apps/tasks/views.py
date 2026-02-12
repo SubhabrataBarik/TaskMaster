@@ -146,12 +146,18 @@ class TaskViewSet(viewsets.ModelViewSet):
         created = []
         with transaction.atomic():
             for index, st in enumerate(subtasks):
+            
+                try:
+                    hours = float(st.get("estimated_time") or st.get("estimated_hours") or 0)
+                except (ValueError, TypeError):
+                    hours = 0
+
                 serializer = SubTaskSerializer(
                     data={
                         "title": st.get("title"),
-                        "estimated_hours": st.get("estimated_time")
-                        or st.get("estimated_hours"),
+                        "estimated_hours": hours,
                         "order_index": index,
+                        "status": "pending",
                     }
                 )
                 serializer.is_valid(raise_exception=True)

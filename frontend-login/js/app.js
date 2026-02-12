@@ -178,7 +178,7 @@ const app = {
 // ---------- Google Login (SAFE INIT) ----------
 const initGoogleLogin = () => {
     if (typeof google === "undefined") {
-      console.warn("Google SDK not loaded yet, retrying...");
+    //   console.warn("Google SDK not loaded yet, retrying...");
       setTimeout(initGoogleLogin, 300);
       return;
     }

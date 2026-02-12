@@ -184,6 +184,7 @@ const taskApp = {
       const task = await res.json();
   
       document.getElementById("taskId").value = task.id;
+      taskApp.updateAIButtonsState(task.id);
       document.getElementById("taskTitle").value = task.title;
       document.getElementById("taskDesc").value = task.description || "";
       document.getElementById("taskPriority").value = task.priority;
@@ -219,7 +220,7 @@ const taskApp = {
             <span class="flex-grow-1 small ${st.status === "completed" ? "text-decoration-line-through text-muted" : ""}">
               ${st.title}
             </span>
-            <span class="badge me-2">${Number(st.estimated_hours || 0).toFixed(1)}h</span>
+            <span class="badge me-2">${Number(st.estimated_hours || 0).toFixed(1)}min</span>
             ${st.completed_at 
               ? `<span class="small text-muted ms-2">✔ ${new Date(st.completed_at).toLocaleString()}</span>` 
               : ""
@@ -282,7 +283,98 @@ const taskApp = {
         taskApp.loadSubtasks(taskId);
       }
     },
+
+    handleAIBreakdown: async () => {
+      const taskId = document.getElementById("taskId").value;
+      if (!taskId) return;
   
+      taskApp.toggleButtonLoading("aiBreakdownBtn", "aiBreakdownSpinner", true);
+  
+      try {
+          const aiRes = await app.authFetch(
+              `${CONFIG.API_BASE_URL}/ai/breakdown-task/`,
+              {
+                  method: "POST",
+                  body: JSON.stringify({ task_id: taskId })
+              }
+          );
+  
+          if (!aiRes.ok) {
+              alert("AI breakdown failed");
+              return;
+          }
+  
+          const bulkRes = await app.authFetch(
+              `${CONFIG.API_BASE_URL}/tasks/${taskId}/subtasks/bulk-create/`,
+              { method: "POST" }
+          );
+  
+          if (!bulkRes.ok) {
+              alert("Failed to create subtasks");
+              return;
+          }
+  
+          await taskApp.loadSubtasks(taskId);
+  
+      } catch (err) {
+          console.error("AI breakdown error:", err);
+          alert("Something went wrong.");
+      } finally {
+          taskApp.toggleButtonLoading("aiBreakdownBtn", "aiBreakdownSpinner", false);
+      }
+  },
+  
+  handleSuggestPriority: async () => {
+    const taskId = document.getElementById("taskId").value;
+    if (!taskId) return;
+
+    taskApp.toggleButtonLoading("aiPriorityBtn", "aiPrioritySpinner", true);
+
+    try {
+        const res = await app.authFetch(
+            `${CONFIG.API_BASE_URL}/ai/suggest-priority/`,
+            {
+                method: "POST",
+                body: JSON.stringify({ task_id: taskId })
+            }
+        );
+
+        if (!res.ok) {
+            alert("Priority suggestion failed");
+            return;
+        }
+
+        const data = await res.json();
+        document.getElementById("taskPriority").value = data.suggested_priority;
+
+    } catch (err) {
+        console.error("Priority error:", err);
+        alert("Something went wrong.");
+    } finally {
+        taskApp.toggleButtonLoading("aiPriorityBtn", "aiPrioritySpinner", false);
+    }
+  },
+
+    updateAIButtonsState: (taskId) => {
+      const breakdownBtn = document.getElementById("aiBreakdownBtn");
+      const priorityBtn = document.getElementById("aiPriorityBtn");
+  
+      const enabled = !!taskId;
+  
+      if (breakdownBtn) breakdownBtn.disabled = !enabled;
+      if (priorityBtn) priorityBtn.disabled = !enabled;
+  },
+  
+  toggleButtonLoading: (btnId, spinnerId, isLoading) => {
+    const btn = document.getElementById(btnId);
+    const spinner = document.getElementById(spinnerId);
+
+    if (!btn || !spinner) return;
+
+    btn.disabled = isLoading;
+    spinner.classList.toggle("d-none", !isLoading);
+  },
+
     // -------------------------
     // UI RENDERING
     // -------------------------
@@ -413,7 +505,9 @@ const taskApp = {
       document.getElementById("taskForm").reset();
       document.getElementById("taskId").value = "";
       document.getElementById("subtaskList").innerHTML = "";
+      taskApp.updateAIButtonsState(null);
     },
+    
   };
   
 // -------------------------
@@ -467,6 +561,13 @@ document.addEventListener("DOMContentLoaded", () => {
         taskApp.loadTasks();
       });
   
+      // AI Buttons
+      document.getElementById("aiBreakdownBtn")
+      ?.addEventListener("click", taskApp.      handleAIBreakdown);
+          
+      document.getElementById("aiPriorityBtn")
+      ?.addEventListener("click", taskApp.      handleSuggestPriority);
+          
   });  
   
   window.taskApp = taskApp;

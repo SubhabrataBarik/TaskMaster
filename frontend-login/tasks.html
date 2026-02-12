@@ -278,11 +278,55 @@
                         </div>
                     </form>
                 </div>
+
+
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-link text-danger me-auto" onclick="taskApp.deleteTask()" id="deleteBtn"><i class="bi bi-trash"></i> Delete Task</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary px-4" onclick="taskApp.saveTask()">Save Changes</button>
+
+                    <!-- LEFT SIDE -->
+                    <div class="me-auto d-flex gap-2">
+                        <button type="button"
+                                class="btn btn-outline-primary"
+                                id="aiBreakdownBtn"
+                                disabled>
+                            <span id="aiBreakdownSpinner"
+                                  class="spinner-border spinner-border-sm me-2      d-none"
+                                  role="status"></span>
+                            <i class="bi bi-robot me-1"></i>
+                            AI Breakdown
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-outline-warning"
+                                id="aiPriorityBtn"
+                                disabled>
+                            <span id="aiPrioritySpinner"
+                                  class="spinner-border spinner-border-sm me-2 d-none"
+                                  role="status"></span>
+                            <i class="bi bi-lightning me-1"></i>
+                            Suggest Priority
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-link text-danger"
+                                onclick="taskApp.deleteTask()"
+                                id="deleteBtn">
+                            <i class="bi bi-trash"></i> Delete Task
+                        </button>
+                
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary px-4"
+                            onclick="taskApp.saveTask()">
+                        Save Changes
+                    </button>
                 </div>
+
+                
             </div>
         </div>
     </div>
