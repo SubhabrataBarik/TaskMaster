@@ -1,37 +1,35 @@
-# Create class BreakdownTaskRequestSerializer(serializers.Serializer):
+# app/ai/serializer.py
+from rest_framework import serializers
+from datetime import date
+import uuid
 
-# Fields:
-# - title (CharField, required=True, max_length=255)
-# - description (CharField, required=False, allow_blank=True)
+class BreakdownTaskRequestSerializer(serializers.Serializer):
+    task_id = serializers.UUIDField(required=True)
 
-# Validation rules:
-# - title must not be empty
-# - strip whitespace
-# - optionally: enforce minimum length (e.g., 5 characters)
+    def validate_task_id(self, value):
+        if not value:
+            raise serializers.ValidationError("task_id is required.")
+        return value
 
-# Create class SubtaskSuggestionSerializer(serializers.Serializer):
-# Fields:
-# - title (CharField)
-# - estimated_time (CharField)  # e.g., "2h"
+class SubtaskSuggestionSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    estimated_time = serializers.CharField()
 
-# Create class BreakdownTaskResponseSerializer(serializers.Serializer):
-# Fields:
-# - subtasks (ListField of SubtaskSuggestionSerializer)
-# - reasoning (CharField)
+class BreakdownTaskResponseSerializer(serializers.Serializer):
+    subtasks = SubtaskSuggestionSerializer(many=True)
+    reasoning = serializers.CharField()
 
-# Create class SuggestPriorityRequestSerializer(serializers.Serializer):
+class SuggestPriorityRequestSerializer(serializers.Serializer):
+    task_id = serializers.UUIDField(required=True)
 
-# Fields:
-# - title (CharField, required=True)
-# - description (CharField, required=False)
-# - due_date (DateField, required=False)
+    def validate_task_id(self, value):
+        if not value:
+            raise serializers.ValidationError("task_id is required.")
+        return value
 
-# Validation:
-# - Ensure due_date is not in the past (optional but good)
-
-# Create class SuggestPriorityResponseSerializer(serializers.Serializer):
-
-# Fields:
-# - suggested_priority (ChoiceField: "low", "medium", "high")
-# - confidence (FloatField between 0 and 1)
-# - reasoning (CharField)
+class SuggestPriorityResponseSerializer(serializers.Serializer):
+    suggested_priority = serializers.ChoiceField(
+        choices=["low", "medium", "high"]
+    )
+    confidence = serializers.FloatField(min_value=0, max_value=1)
+    reasoning = serializers.CharField()

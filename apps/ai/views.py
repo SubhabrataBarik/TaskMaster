@@ -1,24 +1,89 @@
-from django.shortcuts import render
+# app/ai/views.py
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+import time
 
-# Create your views here.
-# Class: AIViewSet(viewsets.ViewSet)
+from .models import InferenceLog
+from apps.tasks.models import Task
+from .serializers import (
+    BreakdownTaskRequestSerializer,
+    BreakdownTaskResponseSerializer,
+    SuggestPriorityRequestSerializer,
+    SuggestPriorityResponseSerializer,
+)
+from .services.ai_engine import analyze_task_for_breakdown, suggest_priority
 
-# permission_classes = [IsAuthenticated]  # only logged-in users
 
-# Action 1: breakdown_task (POST)
-# URL: /api/ai/breakdown-task/
+class BreakdownTaskView(APIView):
+    permission_classes = [IsAuthenticated]
 
-# Steps inside method:
-# 1. Validate request using BreakdownTaskRequestSerializer
-# 2. Call analyze_task_for_breakdown(title, description)
-# 3. Log input + output in InferenceLog (if you implemented it)
-# 4. Return BreakdownTaskResponseSerializer(data)
+    def post(self, request):
+        serializer = BreakdownTaskRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        
+        task = get_object_or_404(
+            Task,
+            id=data["task_id"],
+            user=request.user,
+            is_active=True
+        )
+        
+        start = time.time()
+        result = analyze_task_for_breakdown(
+            title=task.title,
+            description=task.description or ""
+        )
 
-# Action 2: suggest_priority (POST)
-# URL: /api/ai/suggest-priority/
+        if "_error" in result:
+            return Response(
+                {"detail": "AI service temporarily unavailable"},
+                status=503
+            )
+        
+        latency_ms = int((time.time() - start) * 1000)
+        InferenceLog.objects.create(
+            task=task,
+            user=request.user,
+            endpoint="breakdown_task",
+            input_text=f"{task.title}\n{task.description or ''}",
+            output=result,
+            latency_ms=latency_ms,
+            confidence=None
+        )
 
-# Steps inside method:
-# 1. Validate request using SuggestPriorityRequestSerializer
-# 2. Call suggest_priority(title, description, due_date)
-# 3. Log inference
-# 4. Return SuggestPriorityResponseSerializer(data)
+        response_serializer = BreakdownTaskResponseSerializer(result)
+        return Response(response_serializer.data, status=200)
+
+
+class SuggestPriorityView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = SuggestPriorityRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        
+        task = get_object_or_404(
+            Task,
+            id=data["task_id"],
+            user=request.user,
+            is_active=True
+        )
+
+        result = suggest_priority(
+            title=task.title,
+            description=task.description or "",
+            due_date=task.due_date
+        )
+
+        if "_error" in result:
+            return Response(
+                {"detail": "AI service temporarily unavailable"},
+                status=503
+            )
+
+        response_serializer = SuggestPriorityResponseSerializer(result)
+        return Response(response_serializer.data, status=200)

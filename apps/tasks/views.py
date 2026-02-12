@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
+from apps.ai.models import InferenceLog
 from .models import Task, SubTask
 from .serializers import (
     TaskSerializer,
@@ -112,6 +113,55 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(parent_task=task)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="subtasks/bulk-create")
+    def subtasks_bulk_create(self, request, pk=None):
+        task = self.get_object()
+        
+        latest_log = (
+            InferenceLog.objects
+            .filter(
+                task=task,
+                endpoint="breakdown_task"
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not latest_log:
+            return Response(
+                {"detail": "No AI breakdown found for this task."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        ai_output = latest_log.output
+        subtasks = ai_output.get("subtasks", [])
+
+        if not isinstance(subtasks, list) or not subtasks:
+            return Response(
+                {"detail": "AI breakdown contained no valid subtasks."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        created = []
+        with transaction.atomic():
+            for index, st in enumerate(subtasks):
+                serializer = SubTaskSerializer(
+                    data={
+                        "title": st.get("title"),
+                        "estimated_hours": st.get("estimated_time")
+                        or st.get("estimated_hours"),
+                        "order_index": index,
+                    }
+                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save(parent_task=task)
+                created.append(serializer.data)
+                
+        latest_log.user_accepted = True
+        latest_log.save(update_fields=["user_accepted"])
+
+        return Response(created, status=status.HTTP_201_CREATED)
 
 
 class SubTaskViewSet(viewsets.ModelViewSet):
