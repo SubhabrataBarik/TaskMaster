@@ -225,10 +225,12 @@ const taskApp = {
               : ""
             }
 
-            <button class="btn btn-sm text-danger p-0"
-              onclick="taskApp.deleteSubtask('${st.id}')">
-              <i class="bi bi-trash"></i>
+            <button type="button"
+                class="btn btn-sm text-danger p-0"
+                onclick="event.stopPropagation(); event.preventDefault(); taskApp.deleteSubtask('${st.id}')">
+                <i class="bi bi-trash"></i>
             </button>
+
           </div>
         `).join("");
       },

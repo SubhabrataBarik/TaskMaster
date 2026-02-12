@@ -39,6 +39,9 @@ GET    /subtasks/{subtask_id}/
 PATCH  /subtasks/{subtask_id}/
 DELETE /subtasks/{subtask_id}/
 POST   /subtasks/reorder/
+
+(AI breakdown)
+POST /api/tasks/{task_id}/subtasks/bulk-create/
 **--------------------------------------------------**
 
 

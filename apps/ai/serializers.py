@@ -1,27 +1,13 @@
 from rest_framework import serializers
 from datetime import date
+import uuid
 
 class BreakdownTaskRequestSerializer(serializers.Serializer):
+    task_id = serializers.UUIDField(required=True)
 
-    title = serializers.CharField(
-        max_length=255,
-        required=True,
-        trim_whitespace=True
-    )
-
-    description =serializers.CharField(
-        required=False,
-        allow_blank=True
-    )
-
-    def validate_title(self, value):
-        value = value.strip()
-
+    def validate_task_id(self, value):
         if not value:
-            raise serializers.ValidationError("Title cannot be empty or whitespace.")
-        if len(value) < 5:
-            raise serializers.ValidationError("Title must be at least 5 characters long.")
-        
+            raise serializers.ValidationError("task_id is required.")
         return value
 
 class SubtaskSuggestionSerializer(serializers.Serializer):
@@ -33,22 +19,11 @@ class BreakdownTaskResponseSerializer(serializers.Serializer):
     reasoning = serializers.CharField()
 
 class SuggestPriorityRequestSerializer(serializers.Serializer):
-    title = serializers.CharField(
-        max_length=255,
-        required=True,
-        trim_whitespace=True
-    )
+    task_id = serializers.UUIDField(required=True)
 
-    description =serializers.CharField(
-        required=False,
-        allow_blank=True
-    )
-
-    due_date = serializers.DateField(required=False)
-
-    def validate_due_date(self, value):
-        if value and value< date.today():
-            raise serializers.ValidationError("due date cannot be in the past")
+    def validate_task_id(self, value):
+        if not value:
+            raise serializers.ValidationError("task_id is required.")
         return value
 
 class SuggestPriorityResponseSerializer(serializers.Serializer):
