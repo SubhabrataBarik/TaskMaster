@@ -91,9 +91,14 @@ class SubTask(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     order_index = models.PositiveIntegerField(default=0)
 
-    estimated_hours = models.DecimalField(
-        max_digits=4,
-        decimal_places=2,
+    # estimated_hours = models.DecimalField(
+    #     max_digits=6,
+    #     decimal_places=2,
+    #     null=True,
+    #     blank=True
+    # )
+
+    estimated_minutes = models.PositiveIntegerField(
         null=True,
         blank=True
     )

@@ -176,11 +176,10 @@ const app = {
   };
   
 // ---------- Google Login (SAFE INIT) ----------
-const initGoogleLogin = () => {
+function initGoogleLogin() {
     if (typeof google === "undefined") {
-    //   console.warn("Google SDK not loaded yet, retrying...");
-      setTimeout(initGoogleLogin, 300);
-      return;
+        console.error("Google SDK failed to load.");
+        return;
     }
   
     const googleBtn = document.getElementById("googleBtn");
@@ -226,8 +225,6 @@ const initGoogleLogin = () => {
   
   // --- DOM Event Listeners ---
   document.addEventListener('DOMContentLoaded', () => {
-    initGoogleLogin();
-
     // Login Form
     document.getElementById("loginBtn")?.addEventListener("click", () => {
         const email = document.getElementById("email").value.trim();

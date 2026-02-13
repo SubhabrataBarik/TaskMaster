@@ -23,7 +23,7 @@ class SubTaskSerializer(serializers.ModelSerializer):
             "status",
             "order_index",
             "completed_at",
-            "estimated_hours",
+            "estimated_minutes",
             "created_at",
             "updated_at",
         ]

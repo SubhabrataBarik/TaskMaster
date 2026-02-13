@@ -118,12 +118,15 @@ class TaskViewSet(viewsets.ModelViewSet):
     def subtasks_bulk_create(self, request, pk=None):
         task = self.get_object()
         
+        if task.subtasks.exists():
+            return Response(
+                {"detail": "Subtasks already exist for this task."},
+                status=status.HTTP_409_CONFLICT
+            )
+
         latest_log = (
             InferenceLog.objects
-            .filter(
-                task=task,
-                endpoint="breakdown_task"
-            )
+            .filter(task=task, endpoint="breakdown_task")
             .order_by("-created_at")
             .first()
         )
@@ -134,12 +137,10 @@ class TaskViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        ai_output = latest_log.output
-        subtasks = ai_output.get("subtasks", [])
-
+        subtasks = latest_log.output.get("subtasks", [])
         if not isinstance(subtasks, list) or not subtasks:
             return Response(
-                {"detail": "AI breakdown contained no valid subtasks."},
+                {"detail": "AI breakdown contained no valid subtasks"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -148,26 +149,32 @@ class TaskViewSet(viewsets.ModelViewSet):
             for index, st in enumerate(subtasks):
             
                 try:
-                    hours = float(st.get("estimated_time") or st.get("estimated_hours") or 0)
+                    raw_value = (
+                        st.get("estimated_minutes")
+                        or st.get("estimated_time")
+                        or 0
+                    )
+                    minutes = int(raw_value)
                 except (ValueError, TypeError):
-                    hours = 0
-
+                    minutes = 0
+        
                 serializer = SubTaskSerializer(
                     data={
                         "title": st.get("title"),
-                        "estimated_hours": hours,
+                        "estimated_minutes": minutes,
                         "order_index": index,
                         "status": "pending",
                     }
                 )
+        
                 serializer.is_valid(raise_exception=True)
                 serializer.save(parent_task=task)
                 created.append(serializer.data)
-                
+        
         latest_log.user_accepted = True
         latest_log.save(update_fields=["user_accepted"])
-
         return Response(created, status=status.HTTP_201_CREATED)
+
 
 
 class SubTaskViewSet(viewsets.ModelViewSet):

@@ -41,7 +41,7 @@ DELETE /subtasks/{subtask_id}/
 POST   /subtasks/reorder/
 
 (AI breakdown)
-POST /api/tasks/{task_id}/subtasks/bulk-create/
+POST /api/tasks/{id}/subtasks/bulk-create/
 **--------------------------------------------------**
 
 
