@@ -117,63 +117,72 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="subtasks/bulk-create")
     def subtasks_bulk_create(self, request, pk=None):
         task = self.get_object()
-        
-        if task.subtasks.exists():
-            return Response(
-                {"detail": "Subtasks already exist for this task."},
-                status=status.HTTP_409_CONFLICT
-            )
-
+    
         latest_log = (
             InferenceLog.objects
             .filter(task=task, endpoint="breakdown_task")
             .order_by("-created_at")
             .first()
         )
-
+    
         if not latest_log:
             return Response(
                 {"detail": "No AI breakdown found for this task."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+    
         subtasks = latest_log.output.get("subtasks", [])
+    
         if not isinstance(subtasks, list) or not subtasks:
             return Response(
                 {"detail": "AI breakdown contained no valid subtasks"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+    
+        existing_titles = set(
+            task.subtasks.values_list("title", flat=True)
+        )
+    
         created = []
+        current_count = task.subtasks.count()
+    
         with transaction.atomic():
-            for index, st in enumerate(subtasks):
-            
+            for st in subtasks:
+                title = st.get("title")
+    
+                if not title or title in existing_titles:
+                    continue
+                
                 try:
-                    raw_value = (
-                        st.get("estimated_minutes")
-                        or st.get("estimated_time")
-                        or 0
+                    minutes = int(
+                        st.get("estimated_time") or
+                        st.get("estimated_minutes") or
+                        0
                     )
-                    minutes = int(raw_value)
                 except (ValueError, TypeError):
                     minutes = 0
-        
+    
                 serializer = SubTaskSerializer(
                     data={
-                        "title": st.get("title"),
+                        "title": title,
                         "estimated_minutes": minutes,
-                        "order_index": index,
+                        "order_index": current_count,
                         "status": "pending",
                     }
                 )
-        
+    
                 serializer.is_valid(raise_exception=True)
                 serializer.save(parent_task=task)
+    
                 created.append(serializer.data)
-        
+                existing_titles.add(title)
+                current_count += 1
+    
         latest_log.user_accepted = True
         latest_log.save(update_fields=["user_accepted"])
+    
         return Response(created, status=status.HTTP_201_CREATED)
+    
 
 
 
