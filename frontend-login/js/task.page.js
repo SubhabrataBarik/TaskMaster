@@ -113,7 +113,7 @@ const taskApp = {
       const data = await res.json();
 
       // 🔥 CRITICAL PART
-      document.getElementById("taskId").value = data. id;
+      document.getElementById("taskId").value = data.id;
       taskApp.updateAIButtonsState(data.id);
 
       // Optional: keep modal open after create
@@ -194,6 +194,12 @@ const taskApp = {
 
 
   editTask: async (id) => {
+    
+    document.getElementById("aiInsightSection").classList.add("d-none");
+    document.getElementById("aiPriorityBlock").innerHTML = "";
+    document.getElementById("aiConfidenceBlock").innerHTML = "";
+    document.getElementById("aiReasoningBlock").innerHTML = "";
+
     const res = await TaskService.fetchTaskById(id);
     const task = await res.json();
 
@@ -317,6 +323,7 @@ const taskApp = {
             alert("AI breakdown failed");
             return;
         }
+        const aiResponseData = await aiRes.json();
 
         const bulkRes = await app.authFetch(
             `${CONFIG.API_BASE_URL}/tasks/${taskId}/subtasks/bulk-create/`,
@@ -329,6 +336,7 @@ const taskApp = {
         }
 
         await taskApp.loadSubtasks(taskId);
+        taskApp.showAIInsight(aiResponseData);
 
     } catch (err) {
         console.error("AI breakdown error:", err);
@@ -336,7 +344,7 @@ const taskApp = {
     } finally {
         taskApp.toggleButtonLoading("aiBreakdownBtn", "aiBreakdownSpinner", false);
     }
-},
+  },
 
 handleSuggestPriority: async () => {
   const taskId = document.getElementById("taskId").value;
@@ -358,8 +366,9 @@ handleSuggestPriority: async () => {
           return;
       }
 
-      const data = await res.json();
-      document.getElementById("taskPriority").value = data.suggested_priority;
+      const aiResponseData = await res.json();
+      document.getElementById("taskPriority").value = aiResponseData.suggested_priority;
+      taskApp.showAIInsight(aiResponseData);
 
   } catch (err) {
       console.error("Priority error:", err);
@@ -367,7 +376,7 @@ handleSuggestPriority: async () => {
   } finally {
       taskApp.toggleButtonLoading("aiPriorityBtn", "aiPrioritySpinner", false);
   }
-},
+  },
 
   updateAIButtonsState: (taskId) => {
     const breakdownBtn = document.getElementById("aiBreakdownBtn");
@@ -377,17 +386,61 @@ handleSuggestPriority: async () => {
 
     if (breakdownBtn) breakdownBtn.disabled = !enabled;
     if (priorityBtn) priorityBtn.disabled = !enabled;
-},
+  },
 
-toggleButtonLoading: (btnId, spinnerId, isLoading) => {
-  const btn = document.getElementById(btnId);
-  const spinner = document.getElementById(spinnerId);
+  toggleButtonLoading: (btnId, spinnerId, isLoading) => {
+    const btn = document.getElementById(btnId);
+    const spinner = document.getElementById(spinnerId);
 
-  if (!btn || !spinner) return;
+    if (!btn || !spinner) return;
 
-  btn.disabled = isLoading;
-  spinner.classList.toggle("d-none", !isLoading);
-},
+    btn.disabled = isLoading;
+    spinner.classList.toggle("d-none", !isLoading);
+  },
+
+  showAIInsight: (data) => {
+    const section = document.getElementById("aiInsightSection");
+    const priorityBlock = document.getElementById("aiPriorityBlock");
+    const confidenceBlock = document.getElementById("aiConfidenceBlock");
+    const reasoningBlock = document.getElementById("aiReasoningBlock");
+
+    section.classList.remove("d-none");
+
+    // Clear previous content
+    priorityBlock.innerHTML = "";
+    confidenceBlock.innerHTML = "";
+    reasoningBlock.innerHTML = "";
+
+    if (data.suggested_priority) {
+      const badgeClass =
+        data.suggested_priority === "high"
+          ? "bg-danger"
+          : data.suggested_priority === "medium"
+          ? "bg-warning text-dark"
+          : "bg-success";
+
+      priorityBlock.innerHTML = `
+        <strong>Suggested Priority:</strong>
+        <span class="badge ${badgeClass} ms-2">
+          ${data.suggested_priority.toUpperCase()}
+        </span>
+      `;
+    }
+
+    if (data.confidence !== undefined) {
+      confidenceBlock.innerHTML = `
+        <strong>Confidence:</strong>
+        ${Math.round(data.confidence * 100)}%
+      `;
+    }
+
+    if (data.reasoning) {
+      reasoningBlock.innerHTML = `
+        <strong>Reasoning:</strong>
+        <p class="mt-2">${data.reasoning}</p>
+      `;
+    }
+  },
 
   // -------------------------
   // UI RENDERING
@@ -520,6 +573,11 @@ toggleButtonLoading: (btnId, spinnerId, isLoading) => {
     document.getElementById("taskId").value = "";
     document.getElementById("subtaskList").innerHTML = "";
     taskApp.updateAIButtonsState(null);
+    document.getElementById("aiInsightSection").classList.add("d-none");
+    document.getElementById("aiPriorityBlock").innerHTML = "";
+    document.getElementById("aiConfidenceBlock").innerHTML = "";
+    document.getElementById("aiReasoningBlock").innerHTML = "";
+
   },
   
 };
@@ -577,7 +635,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // AI Buttons
     document.getElementById("aiBreakdownBtn")
-    ?.addEventListener("click", taskApp. handleAIBreakdown);
+    ?.addEventListener("click", taskApp.handleAIBreakdown);
         
     document.getElementById("aiPriorityBtn")
     ?.addEventListener("click", taskApp. handleSuggestPriority);
