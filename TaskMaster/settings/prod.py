@@ -47,8 +47,8 @@ DATABASES = {
     }
 }
 
-LOGIN_REDIRECT_URL = "https://task-master-umber-beta.vercel.app/"
-LOGOUT_REDIRECT_URL = "https://task-master-umber-beta.vercel.app/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 # Security settings
 # SESSION_COOKIE_SECURE = True
