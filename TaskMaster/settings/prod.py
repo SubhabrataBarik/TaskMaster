@@ -22,16 +22,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080"
 ]
 
-# ALLOWED_HOSTS = [".onrender.com",]
+
 ALLOWED_HOSTS = [
     "3.7.233.37",
     "ec2-3-7-233-37.ap-south-1.compute.amazonaws.com",
+    "taskmaster-ai.duckdns.org",
     "127.0.0.1",
     "localhost",
 ]
-# DATABASES = {
-#     "default": env.db("DATABASE_URL")
-#     }
+
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
