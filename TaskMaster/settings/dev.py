@@ -2,7 +2,13 @@
 from .base import *
 
 DEBUG = True
+# ALLOWED_HOSTS = [
+#     "localhost",
+#     "127.0.0.1",
+# ]
 ALLOWED_HOSTS = [
+    "3.7.233.37",
+    "ec2-3-7-233-37.ap-south-1.compute.amazonaws.com",
     "localhost",
     "127.0.0.1",
 ]
